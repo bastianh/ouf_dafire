@@ -1,8 +1,13 @@
+local LSM = LibStub and LibStub:GetLibrary("LibSharedMedia-3.0", true)
 
 local texture = [[Interface\AddOns\oUF_Dafire\textures\statusbar]]
-local height, width = 38, 170
+local height, width = 38, 160
 local UnitReactionColor = UnitReactionColor
 local gray = {r = .3, g = .3, b = .3}
+
+local font = LSM and LSM:Fetch("font","Myriad") or GameFontNormal:GetFont()
+local font2 = "Interface\\AddOns\\tekticles\\Calibri.ttf" -- TODO:todo
+
 
 local menu = function(self)
 	local unit = self.unit:sub(1, -2)
@@ -24,6 +29,17 @@ local classification = {
 	trivial = 't',
 }
 
+local updateLevelString = function(self, event, unit)
+	if(unit ~= self.unit) then return end
+
+	local level = UnitLevel(unit)
+	if(level == -1) then
+		level = '??'
+	end
+	self.Level:SetFormattedText("%s",level)
+end
+
+--[[
 local updateInfoString = function(self, event, unit)
 	if(unit ~= self.unit) then return end
 
@@ -59,6 +75,7 @@ local updateInfoString = function(self, event, unit)
 		happiness or ''
 	)
 end
+]]
 
 local siValue = function(val)
 	if(val >= 1e4) then
@@ -67,7 +84,7 @@ local siValue = function(val)
 		return val
 	end
 end
-
+--[[
 local OverrideUpdateHealth = function(self, event, unit, bar, min, max)
 	local color = self.colors.health[0]
 	bar:SetStatusBarColor(color[0],color[1],color[2])
@@ -90,6 +107,24 @@ local OverrideUpdateHealth = function(self, event, unit, bar, min, max)
 		bar.value:SetText"Offline"
 	else
 		bar.value:SetFormattedText('%s/%s', siValue(min), siValue(max))
+	end
+end
+]]
+local PostUpdateHealth = function(self, event, unit, bar, min, max)
+	if(UnitIsDead(unit)) then
+		bar.value:SetText"Dead"
+	elseif(UnitIsGhost(unit)) then
+		bar.value:SetText"Ghost"
+	elseif(not UnitIsConnected(unit)) then
+		bar.value:SetText"Offline"
+	else
+		if max == 100 then
+			bar.value:SetFormattedText('%s%%', min)
+		elseif max == min then
+			bar.value:SetFormattedText('%s', max)
+		else
+			bar.value:SetFormattedText('%s/%s (%.1f%%)', siValue(min), siValue(max), min/max*100)
+		end
 	end
 end
 
@@ -132,20 +167,20 @@ local func = function(settings, self, unit)
 
 	hp:SetParent(self)
 	hp:SetPoint("TOPLEFT",3,-3)
-
+	hp.colorTapping = true
+	hp.colorClass = true
+	hp.colorHappiness = true
+	hp.colorReaction = true
+	hp.colorSmooth = true
 	self.Health = hp
-	-- We have to override for now...
-	self.OverrideUpdateHealth = OverrideUpdateHealth
 
 	local hpp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	--hpp:SetPoint("LEFT", hp, "RIGHT", 2, 0)
-	--hpp:SetPoint("RIGHT", self, -6, 0)
 	hpp:SetAllPoints(hp)
 	hpp:SetJustifyH"CENTER"
-	hpp:SetFont(GameFontNormal:GetFont(), 10)
+	hpp:SetFont(font2, 12)
 	hpp:SetTextColor(1, 1, 1)
-
 	hp.value = hpp
+	self.PostUpdateHealth = PostUpdateHealth
 
 	-- Health bar background
 	local hpbg = hp:CreateTexture(nil, "BORDER")
@@ -155,12 +190,12 @@ local func = function(settings, self, unit)
 
 	-- Unit name
 	local name = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, 3)
-	--name:SetPoint("LEFT", 2, -1)
-	--name:SetPoint("RIGHT", -2, 0)
 	name:SetJustifyH"LEFT"
-	name:SetFont(GameFontNormal:GetFont(), 11)
+	name:SetFont(font2, 12, "OUTLINE")
+	name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, 0)
 	name:SetTextColor(1, 1, 1)
+	name:SetWidth(width-15)
+	name:SetHeight(12)
 
 	self.Name = name
 
@@ -172,10 +207,8 @@ local func = function(settings, self, unit)
 		pp:SetStatusBarTexture(texture)
 
 		pp:SetParent(self)
-		--pp:SetPoint("BOTTOM", 0, 2)
-		--pp:SetPoint("LEFT", 2, 0)
 		pp:SetPoint("BOTTOMLEFT", 3, 3)
-		
+		pp.colorType = true
 		self.Power = pp
 
 		-- Power bar background
@@ -184,16 +217,23 @@ local func = function(settings, self, unit)
 		ppbg:SetTexture(texture)
 		pp.bg = ppbg
 
-		--local ppp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-		--ppp:SetPoint("LEFT", pp, "RIGHT", 2, 0)
-		--ppp:SetPoint("RIGHT", self, -6, 0)
-		--ppp:SetJustifyH"CENTER"
-		--ppp:SetFont(GameFontNormal:GetFont(), 10)
-		--ppp:SetTextColor(1, 1, 1)
-		--
-		--pp.value = ppp
-		--self.PostUpdatePower = PostUpdatePower
+		local ppp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		ppp:SetAllPoints(pp)
+		ppp:SetJustifyH"CENTER"
+		ppp:SetFont(font2, 10)
+		ppp:SetTextColor(1, 1, 1)
+		
+		pp.value = ppp
+		self.PostUpdatePower = PostUpdatePower
 
+		-- Level String
+		local level = pp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		level:SetJustifyH"RIGHT"
+		level:SetFont(font2, 11, "OUTLINE")
+		level:SetTextColor(1, 1, 1)		
+		level:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, 0)
+		self.Level = level
+		
 		-- Info string
 		--local info = pp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		--info:SetPoint("LEFT", 2, -1)
@@ -203,8 +243,9 @@ local func = function(settings, self, unit)
 		--info:SetTextColor(1, 1, 1)
 		--
 		--self.Info = info
-		--self.UNIT_LEVEL = updateInfoString
-		--self:RegisterEvent"UNIT_LEVEL"
+		
+		self.UNIT_LEVEL = updateLevelString
+		self:RegisterEvent"UNIT_LEVEL"
 
 		--if(unit == "pet") then
 		--	self.UNIT_HAPPINESS = updateInfoString
@@ -280,13 +321,13 @@ oUF:SetActiveStyle"Classic"
 
 -- :Spawn(unit, frame_name, isPet) --isPet is only used on headers.
 local player = oUF:Spawn"player"
-player:SetPoint("RIGHT", UIParent, "BOTTOM", -10, 100)
+player:SetPoint("RIGHT", UIParent, "BOTTOM", -15, 150)
 
 local pet = oUF:Spawn"pet"
 pet:SetPoint('TOP', player, 'BOTTOM', -200, 0)
 
 local target = oUF:Spawn"target"
-target:SetPoint("LEFT", UIParent, "BOTTOM", 10, 100)
+target:SetPoint("LEFT", UIParent, "BOTTOM", 15, 150)
 
 local party = oUF:Spawn("header", "oUF_Party")
 party:SetPoint("TOPLEFT", 30, -30)
@@ -304,4 +345,9 @@ party:Show()
 oUF:SetActiveStyle"Classic - Small"
 
 local tot = oUF:Spawn"targettarget"
-tot:SetPoint("CENTER", 0, -250)
+tot:SetPoint("CENTER", 0, -150)
+
+
+p = player
+pp = pet
+t = target
