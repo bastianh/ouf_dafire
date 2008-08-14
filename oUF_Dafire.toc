@@ -1,0 +1,7 @@
+## Interface: 20400
+## Author: dafire
+## Title: oUF dafire
+## Notes: agUF style oUF layout
+## OptionalDeps: MobHealth, tekErr, daFonts
+## RequiredDeps: oUF
+dafire.lua
