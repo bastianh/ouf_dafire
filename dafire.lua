@@ -1,3 +1,5 @@
+local function Debug(...) ChatFrame1:AddMessage(string.join(" ", "|cFF33FF99oUF_dafire|r:", ...)) end
+
 local texture = [[Interface\AddOns\oUF_Dafire\textures\statusbar]]
 local height, width = 38, 180
 local UnitReactionColor = UnitReactionColor
@@ -36,6 +38,24 @@ local updateLevelString = function(self, event, unit)
 		level = '??'
 	end
 	self.Level:SetFormattedText("%s",level)
+end
+
+local scaleDebuffs = function(self, unit, aura)
+	local debuffs = self.Debuffs
+	local newscale, index = 1, 1
+	while debuffs[index] and debuffs[index]:IsVisible() do index = index + 1 end
+	local debuffcount = index - 1
+	if debuffcount == debuffs.debuffcount then return end
+	--Debug("Debuffs",tostring(debuffcount))
+	if debuffcount < 2 then newscale = 1.5
+	elseif debuffcount > 8 then newscale = 1
+	elseif debuffcount < 4 then newscale = 1.4
+	else newscale = 1.2
+	end
+	if newscale == debuffs.scale then return end
+	debuffs.scale = newscale
+	debuffs:SetScale(newscale)
+	--Debug("Debuffs Setscale",tostring(newscale))
 end
 
 --[[
@@ -325,6 +345,7 @@ local func = function(settings, self, unit)
 			debuffs.num = 10
 		else -- target
 			debuffs.num = 40
+			self.PostUpdateAura = scaleDebuffs
 		end
 		
 		self.Debuffs = debuffs
