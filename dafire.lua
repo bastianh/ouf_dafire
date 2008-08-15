@@ -4,7 +4,9 @@ local UnitReactionColor = UnitReactionColor
 local gray = {r = .3, g = .3, b = .3}
 
 local LSM = LibStub and LibStub:GetLibrary("LibSharedMedia-3.0", true)
-local font = LSM and LSM:Fetch("font","Calibri") or "Interface\\AddOns\\oUF_Dafire\\Calibri.ttf" 
+local font = LSM and LSM:Fetch("font","Calibri") or "Interface\\AddOns\\oUF_Dafire\\font.ttf" 
+
+myfont = font
 
 local menu = function(self)
 	local unit = self.unit:sub(1, -2)
@@ -115,12 +117,16 @@ local PostUpdateHealth = function(self, event, unit, bar, min, max)
 	elseif(not UnitIsConnected(unit)) then
 		bar.value:SetText"Offline"
 	else
-		if max == 100 then
-			bar.value:SetFormattedText('%s%%', min)
-		elseif max == min then
-			bar.value:SetFormattedText('%s', max)
+		if unit == "targettarget" then
+			bar.value:SetFormattedText("%.1f%%", min/max*100)
 		else
-			bar.value:SetFormattedText('%s/%s (%.1f%%)', siValue(min), siValue(max), min/max*100)
+			if max == 100 then
+				bar.value:SetFormattedText('%s%%', min)
+			elseif max == min then
+				bar.value:SetFormattedText('%s', max)
+			else
+				bar.value:SetFormattedText('%s/%s (%.1f%%)', siValue(min), siValue(max), min/max*100)
+			end
 		end
 	end
 end
@@ -144,6 +150,9 @@ local backdrop = {
 }
 
 local func = function(settings, self, unit)
+	local width = width
+	local height = height -- this allows changing without changing file local
+	
 	self.menu = menu
 
 	self:SetScript("OnEnter", UnitFrame_OnEnter)
@@ -171,6 +180,25 @@ local func = function(settings, self, unit)
 	hp.colorSmooth = true
 	self.Health = hp
 
+	local hpp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	if unit == "targettarget" then
+		hpp:SetPoint("RIGHT",hp, -3, 0)
+		hpp:SetJustifyH"RIGHT"	
+	else
+		hpp:SetAllPoints(hp)
+		hpp:SetJustifyH"CENTER"
+	end
+	hpp:SetFont(font, 12)
+	hpp:SetTextColor(1, 1, 1)
+	hp.value = hpp
+	self.PostUpdateHealth = PostUpdateHealth
+
+	-- Health bar background
+	local hpbg = hp:CreateTexture(nil, "BORDER")
+	hpbg:SetAllPoints(hp)
+	hpbg:SetTexture(texture)
+	hp.bg = hpbg
+
 	-- Portrait
 	if unit == "target" or unit == "player" then
 		local portrait = CreateFrame("PlayerModel", nil, self)
@@ -192,26 +220,20 @@ local func = function(settings, self, unit)
 		self.Portrait = portrait
 	end
 	
-
-	local hpp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	hpp:SetAllPoints(hp)
-	hpp:SetJustifyH"CENTER"
-	hpp:SetFont(font, 12)
-	hpp:SetTextColor(1, 1, 1)
-	hp.value = hpp
-	self.PostUpdateHealth = PostUpdateHealth
-
-	-- Health bar background
-	local hpbg = hp:CreateTexture(nil, "BORDER")
-	hpbg:SetAllPoints(hp)
-	hpbg:SetTexture(texture)
-	hp.bg = hpbg
-
 	-- Unit name
 	local name = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local name_extra = "OUTLINE"
 	name:SetJustifyH"LEFT"
-	name:SetFont(font, 12, "OUTLINE")
-	name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, 0)
+	if unit == "targettarget" then
+		name:SetPoint("LEFT", hp ,3 ,0)
+		name_extra = nil
+	elseif unit == "player" then
+		name:SetJustifyH"RIGHT"
+		name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -5)
+	else
+		name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -5)
+	end
+	name:SetFont(font, 12, name_extra)
 	name:SetTextColor(1, 1, 1)
 	name:SetWidth(width-15)
 	name:SetHeight(12)
@@ -247,10 +269,15 @@ local func = function(settings, self, unit)
 
 		-- Level String
 		local level = pp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-		level:SetJustifyH"RIGHT"
+		if unit == "player" then
+			level:SetJustifyH"LEFT"
+			level:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -5)				
+		else
+			level:SetJustifyH"RIGHT"
+			level:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -5)		
+		end
 		level:SetFont(font, 11, "OUTLINE")
 		level:SetTextColor(1, 1, 1)		
-		level:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, 0)
 		self.Level = level
 		
 		-- Info string
@@ -272,10 +299,40 @@ local func = function(settings, self, unit)
 		--end
 	end
 
-	if(unit ~= 'player') then
+	if(unit == 'target') or (unit == 'targettarget') then
+		if (unit == 'target') then
+			local buffs = CreateFrame("Frame", nil, self)
+			buffs:SetPoint("TOPLEFT", self, "TOPRIGHT")
+			buffs:SetHeight(18*3)
+			buffs:SetWidth(18*8)
+			buffs.size = 18
+			buffs.num = 8*3
+			buffs.initialAnchor = "TOPLEFT"
+			buffs['growth-y'] = "DOWN"
+			self.Buffs = buffs
+		end
+		
+		-- Debuffs
+		local debuffs = CreateFrame("Frame", nil, self)
+		debuffs:SetPoint("TOPLEFT", self, "BOTTOMLEFT")
+		debuffs:SetHeight(18*4)
+		debuffs:SetWidth(18*10)
+		debuffs['growth-y'] = "DOWN"
+		debuffs.initialAnchor = "TOPLEFT"
+		debuffs.size = 18
+		debuffs.showDebuffType = true
+		if (unit == 'targettarget') then
+			debuffs.num = 10
+		else -- target
+			debuffs.num = 40
+		end
+		
+		self.Debuffs = debuffs
+		
+	elseif(unit ~= 'player') then
 		-- Buffs
 		local buffs = CreateFrame("Frame", nil, self)
-		buffs:SetPoint("BOTTOM", self, "TOP")
+		buffs:SetPoint("TOPLEFT", self, "BOTTOMLEFT")
 		buffs:SetHeight(17)
 		buffs:SetWidth(width)
 
@@ -286,7 +343,7 @@ local func = function(settings, self, unit)
 
 		-- Debuffs
 		local debuffs = CreateFrame("Frame", nil, self)
-		debuffs:SetPoint("TOP", self, "BOTTOM")
+		debuffs:SetPoint("BOTTOM", self, "TOP")
 		debuffs:SetHeight(20)
 		debuffs:SetWidth(width)
 
@@ -296,7 +353,7 @@ local func = function(settings, self, unit)
 		debuffs.num = math.floor(width / debuffs.size + .5)
 
 		self.Debuffs = debuffs
-	else
+	elseif (unit == 'player') then
 		self:RegisterEvent"PLAYER_UPDATE_RESTING"
 		self.PLAYER_UPDATE_RESTING = function(self)
 			if(IsResting()) then
@@ -319,10 +376,10 @@ local func = function(settings, self, unit)
 	if(not unit) then
 		self.Range = true
 		self.inRangeAlpha = 1
-		self.outsideRangeAlpha = .5
+		self.outsideRangeAlpha = .4
 	end
 end
-
+	
 oUF:RegisterStyle("Classic", setmetatable({
 	["initial-width"] = width,
 	["initial-height"] = height,
@@ -330,7 +387,7 @@ oUF:RegisterStyle("Classic", setmetatable({
 
 oUF:RegisterStyle("Classic - Small", setmetatable({
 	["initial-width"] = width,
-	["initial-height"] = height - 16,
+	["initial-height"] = height - 14,
 	["size"] = 'small',
 }, {__call = func}))
 
@@ -364,7 +421,7 @@ party:Show()
 oUF:SetActiveStyle"Classic - Small"
 
 local tot = oUF:Spawn"targettarget"
-tot:SetPoint("CENTER", 0, -150)
+tot:SetPoint("BOTTOM", 0, 200)
 
 
 p = player
