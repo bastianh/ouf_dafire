@@ -247,7 +247,7 @@ local func = function(settings, self, unit)
 	if unit == "targettarget" then
 		name:SetPoint("LEFT", hp ,3 ,0)
 		name_extra = nil
-	elseif unit == "player" then
+	elseif unit == "target" then
 		name:SetJustifyH"RIGHT"
 		name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -5)
 	else
@@ -289,7 +289,7 @@ local func = function(settings, self, unit)
 
 		-- Level String
 		local level = pp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-		if unit == "player" then
+		if unit == "target" then
 			level:SetJustifyH"LEFT"
 			level:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -5)				
 		else
