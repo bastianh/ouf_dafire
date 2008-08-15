@@ -1,13 +1,10 @@
-local LSM = LibStub and LibStub:GetLibrary("LibSharedMedia-3.0", true)
-
 local texture = [[Interface\AddOns\oUF_Dafire\textures\statusbar]]
-local height, width = 38, 160
+local height, width = 38, 180
 local UnitReactionColor = UnitReactionColor
 local gray = {r = .3, g = .3, b = .3}
 
-local font = LSM and LSM:Fetch("font","Myriad") or GameFontNormal:GetFont()
-local font2 = "Interface\\AddOns\\tekticles\\Calibri.ttf" -- TODO:todo
-
+local LSM = LibStub and LibStub:GetLibrary("LibSharedMedia-3.0", true)
+local font = LSM and LSM:Fetch("font","Calibri") or "Interface\\AddOns\\oUF_Dafire\\Calibri.ttf" 
 
 local menu = function(self)
 	local unit = self.unit:sub(1, -2)
@@ -161,12 +158,12 @@ local func = function(settings, self, unit)
 
 	-- Health bar
 	local hp = CreateFrame"StatusBar"
-	hp:SetWidth(width-6)
 	hp:SetHeight(18)
 	hp:SetStatusBarTexture(texture)
 
 	hp:SetParent(self)
 	hp:SetPoint("TOPLEFT",3,-3)
+	hp:SetPoint("TOPRIGHT",-3,-3)
 	hp.colorTapping = true
 	hp.colorClass = true
 	hp.colorHappiness = true
@@ -174,10 +171,32 @@ local func = function(settings, self, unit)
 	hp.colorSmooth = true
 	self.Health = hp
 
+	-- Portrait
+	if unit == "target" or unit == "player" then
+		local portrait = CreateFrame("PlayerModel", nil, self)
+		portrait:SetScript("OnShow",function() this:SetCamera(0) end)
+		portrait:SetWidth(32)
+		portrait:SetHeight(32)
+		portrait.type = "3D"
+		if unit == "target" then	
+			portrait:SetPoint("TOPRIGHT", -3, -3)
+			hp:ClearAllPoints()
+			hp:SetPoint("TOPLEFT",3,-3)
+			hp:SetPoint("TOPRIGHT", portrait, "TOPLEFT",-1,0)
+		else
+			portrait:SetPoint("TOPLEFT", 3, -3)
+			hp:ClearAllPoints()
+			hp:SetPoint("TOPLEFT",portrait,"TOPRIGHT",1,0)
+			hp:SetPoint("TOPRIGHT",-3,-3)
+		end
+		self.Portrait = portrait
+	end
+	
+
 	local hpp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	hpp:SetAllPoints(hp)
 	hpp:SetJustifyH"CENTER"
-	hpp:SetFont(font2, 12)
+	hpp:SetFont(font, 12)
 	hpp:SetTextColor(1, 1, 1)
 	hp.value = hpp
 	self.PostUpdateHealth = PostUpdateHealth
@@ -191,7 +210,7 @@ local func = function(settings, self, unit)
 	-- Unit name
 	local name = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	name:SetJustifyH"LEFT"
-	name:SetFont(font2, 12, "OUTLINE")
+	name:SetFont(font, 12, "OUTLINE")
 	name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, 0)
 	name:SetTextColor(1, 1, 1)
 	name:SetWidth(width-15)
@@ -202,12 +221,12 @@ local func = function(settings, self, unit)
 	if(settings.size ~= 'small') then
 		-- Power bar
 		local pp = CreateFrame"StatusBar"
-		pp:SetWidth(width - 6)
-		pp:SetHeight(12)
 		pp:SetStatusBarTexture(texture)
 
 		pp:SetParent(self)
-		pp:SetPoint("BOTTOMLEFT", 3, 3)
+		pp:SetPoint("TOPLEFT",hp, "BOTTOMLEFT", 0, -2)
+		pp:SetPoint("TOPRIGHT",hp, "BOTTOMRIGHT", 0, -2)
+		pp:SetPoint("BOTTOM", 0, 3)
 		pp.colorType = true
 		self.Power = pp
 
@@ -220,7 +239,7 @@ local func = function(settings, self, unit)
 		local ppp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		ppp:SetAllPoints(pp)
 		ppp:SetJustifyH"CENTER"
-		ppp:SetFont(font2, 10)
+		ppp:SetFont(font, 10)
 		ppp:SetTextColor(1, 1, 1)
 		
 		pp.value = ppp
@@ -229,7 +248,7 @@ local func = function(settings, self, unit)
 		-- Level String
 		local level = pp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		level:SetJustifyH"RIGHT"
-		level:SetFont(font2, 11, "OUTLINE")
+		level:SetFont(font, 11, "OUTLINE")
 		level:SetTextColor(1, 1, 1)		
 		level:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, 0)
 		self.Level = level
