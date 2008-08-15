@@ -8,7 +8,7 @@ local gray = {r = .3, g = .3, b = .3}
 local LSM = LibStub and LibStub:GetLibrary("LibSharedMedia-3.0", true)
 local font = LSM and LSM:Fetch("font","Calibri") or "Interface\\AddOns\\oUF_Dafire\\font.ttf" 
 
-myfont = font
+local playerClass = select(2, UnitClass("player")) -- combopoints for druid/rogue
 
 local menu = function(self)
 	local unit = self.unit:sub(1, -2)
@@ -300,6 +300,15 @@ local func = function(settings, self, unit)
 		level:SetTextColor(1, 1, 1)		
 		self.Level = level
 		
+		
+		if unit=="target" and playerClass == "ROGUE" or playerClass == "DRUID" then
+		local cpoints = self:CreateFontString(nil, "OVERLAY")
+			cpoints:SetPoint("CENTER", self, "LEFT", -15, 3)
+			cpoints:SetFont(font, 38, "OUTLINE")
+			cpoints:SetTextColor(1,1,1)
+			cpoints:SetJustifyH("RIGHT")
+			self.CPoints = cpoints
+		end
 		-- Info string
 		--local info = pp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		--info:SetPoint("LEFT", 2, -1)
