@@ -1,5 +1,7 @@
 local function Debug(...) ChatFrame1:AddMessage(string.join(" ", "|cFF33FF99oUF_dafire|r:", ...)) end
 
+local wotlk = select(4, GetBuildInfo()) >= 3e4
+
 local texture = [[Interface\AddOns\oUF_Dafire\textures\statusbar]]
 local height, width = 38, 180
 local UnitReactionColor = UnitReactionColor
@@ -130,6 +132,9 @@ local OverrideUpdateHealth = function(self, event, unit, bar, min, max)
 end
 ]]
 local PostUpdateHealth = function(self, event, unit, bar, min, max)
+	if wotlk and self.Threat then
+		self.Threat:SetFormattedText("%.1f%%", select(3,UnitDetailedThreatSituation("player", "target")))
+	end
 	if(UnitIsDead(unit)) then
 		bar.value:SetText"Dead"
 	elseif(UnitIsGhost(unit)) then
@@ -218,6 +223,26 @@ local func = function(settings, self, unit)
 	hpbg:SetAllPoints(hp)
 	hpbg:SetTexture(texture)
 	hp.bg = hpbg
+	
+	-- Threat Display
+	if (unit == "targettarget") then
+	
+		local threat = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	
+		threat:SetFont(font, 12)
+		threat:SetTextColor(1, 1, 1)
+		threat:SetWidth(width-15)
+		threat:SetHeight(12)
+	
+		threat:SetPoint("LEFT",hp, 3, 0)
+		threat:SetJustifyH"LEFT"	
+	
+		threat.unit = "target"
+		--threat:SetText("XXX%")
+	
+		self.Threat = threat
+	end
+
 
 	-- Portrait
 	if unit == "target" or unit == "player" then
@@ -242,18 +267,18 @@ local func = function(settings, self, unit)
 	
 	-- Unit name
 	local name = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	local name_extra = "OUTLINE"
-	name:SetJustifyH"LEFT"
+	
 	if unit == "targettarget" then
-		name:SetPoint("LEFT", hp ,3 ,0)
-		name_extra = nil
+		name:SetJustifyH"CENTER"
+		name:SetPoint("BOTTOM", hp, "TOP" ,0 ,-5)
 	elseif unit == "target" then
 		name:SetJustifyH"RIGHT"
 		name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -5)
 	else
+		name:SetJustifyH"LEFT"
 		name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -5)
 	end
-	name:SetFont(font, 12, name_extra)
+	name:SetFont(font, 12, "OUTLINE")
 	name:SetTextColor(1, 1, 1)
 	name:SetWidth(width-15)
 	name:SetHeight(12)
@@ -427,13 +452,13 @@ oUF:SetActiveStyle"Classic"
 
 -- :Spawn(unit, frame_name, isPet) --isPet is only used on headers.
 local player = oUF:Spawn"player"
-player:SetPoint("RIGHT", UIParent, "BOTTOM", -15, 150)
+player:SetPoint("RIGHT", UIParent, "BOTTOM", -15, 200)
 
 local pet = oUF:Spawn"pet"
 pet:SetPoint('TOP', player, 'BOTTOM', -200, 0)
 
 local target = oUF:Spawn"target"
-target:SetPoint("LEFT", UIParent, "BOTTOM", 15, 150)
+target:SetPoint("LEFT", UIParent, "BOTTOM", 15, 200)
 
 local party = oUF:Spawn("header", "oUF_Party")
 party:SetPoint("TOPLEFT", 30, -30)
@@ -451,7 +476,7 @@ party:Show()
 oUF:SetActiveStyle"Classic - Small"
 
 local tot = oUF:Spawn"targettarget"
-tot:SetPoint("BOTTOM", 0, 200)
+tot:SetPoint("BOTTOM", 0, 250)
 
 
 p = player
