@@ -243,7 +243,6 @@ local func = function(settings, self, unit)
 		self.Threat = threat
 	end
 
-
 	-- Portrait
 	if unit == "target" or unit == "player" then
 		local portrait = CreateFrame("PlayerModel", nil, self)
@@ -270,13 +269,13 @@ local func = function(settings, self, unit)
 	
 	if unit == "targettarget" then
 		name:SetJustifyH"CENTER"
-		name:SetPoint("BOTTOM", hp, "TOP" ,0 ,-5)
+		name:SetPoint("BOTTOM", hp, "TOP" ,0 ,-6)
 	elseif unit == "target" then
 		name:SetJustifyH"RIGHT"
-		name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -5)
+		name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -6)
 	else
 		name:SetJustifyH"LEFT"
-		name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -5)
+		name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -6)
 	end
 	name:SetFont(font, 12, "OUTLINE")
 	name:SetTextColor(1, 1, 1)
@@ -316,10 +315,10 @@ local func = function(settings, self, unit)
 		local level = pp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		if unit == "target" then
 			level:SetJustifyH"LEFT"
-			level:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -5)				
+			level:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -6)				
 		else
 			level:SetJustifyH"RIGHT"
-			level:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -5)		
+			level:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -6)		
 		end
 		level:SetFont(font, 11, "OUTLINE")
 		level:SetTextColor(1, 1, 1)		
