@@ -244,7 +244,7 @@ local func = function(settings, self, unit)
 	end
 
 	-- Portrait
-	if unit == "target" or unit == "player" then
+	if unit == "target" or unit == "player"  or (not unit) then
 		local portrait = CreateFrame("PlayerModel", nil, self)
 		portrait:SetScript("OnShow",function() this:SetCamera(0) end)
 		portrait:SetWidth(32)
@@ -269,7 +269,7 @@ local func = function(settings, self, unit)
 	
 	if unit == "targettarget" then
 		name:SetJustifyH"CENTER"
-		name:SetPoint("BOTTOM", hp, "TOP" ,0 ,-6)
+		name:SetPoint("BOTTOM", hp, "TOP" ,0 ,-5)
 	elseif unit == "target" then
 		name:SetJustifyH"RIGHT"
 		name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -6)
@@ -434,12 +434,12 @@ local func = function(settings, self, unit)
 	end
 end
 	
-oUF:RegisterStyle("Classic", setmetatable({
+oUF:RegisterStyle("Normal", setmetatable({
 	["initial-width"] = width,
 	["initial-height"] = height,
 }, {__call = func}))
 
-oUF:RegisterStyle("Classic - Small", setmetatable({
+oUF:RegisterStyle("Small", setmetatable({
 	["initial-width"] = width,
 	["initial-height"] = height - 14,
 	["size"] = 'small',
@@ -447,7 +447,8 @@ oUF:RegisterStyle("Classic - Small", setmetatable({
 
 -- hack to get our level information updated.
 oUF:RegisterSubTypeMapping"UNIT_LEVEL"
-oUF:SetActiveStyle"Classic"
+
+oUF:SetActiveStyle"Normal"
 
 -- :Spawn(unit, frame_name, isPet) --isPet is only used on headers.
 local player = oUF:Spawn"player"
@@ -472,7 +473,7 @@ party:SetManyAttributes(
 )
 party:Show()
 
-oUF:SetActiveStyle"Classic - Small"
+oUF:SetActiveStyle"Small"
 
 local tot = oUF:Spawn"targettarget"
 tot:SetPoint("BOTTOM", 0, 250)
