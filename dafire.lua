@@ -217,13 +217,13 @@ local func = function(settings, self, unit)
 	hpp:SetTextColor(1, 1, 1)
 	hp.value = hpp
 	self.PostUpdateHealth = PostUpdateHealth
-
+--[[
 	-- Health bar background
 	local hpbg = hp:CreateTexture(nil, "BORDER")
 	hpbg:SetAllPoints(hp)
 	hpbg:SetTexture(texture)
-	hp.bg = hpbg
-	
+	hp.bg = hpb
+]]
 	-- Threat Display
 	if (unit == "targettarget") then
 	
@@ -295,13 +295,13 @@ local func = function(settings, self, unit)
 		pp:SetPoint("BOTTOM", 0, 3)
 		pp.colorType = true
 		self.Power = pp
-
+--[[
 		-- Power bar background
 		local ppbg = pp:CreateTexture(nil, "BORDER")
 		ppbg:SetAllPoints(pp)
 		ppbg:SetTexture(texture)
 		pp.bg = ppbg
-
+]]
 		local ppp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		ppp:SetAllPoints(pp)
 		ppp:SetJustifyH"CENTER"
