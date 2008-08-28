@@ -293,7 +293,7 @@ local func = function(settings, self, unit)
 		pp:SetPoint("TOPLEFT",hp, "BOTTOMLEFT", 0, -2)
 		pp:SetPoint("TOPRIGHT",hp, "BOTTOMRIGHT", 0, -2)
 		pp:SetPoint("BOTTOM", 0, 3)
-		pp.colorType = true
+		pp.colorPower = true
 		self.Power = pp
 --[[
 		-- Power bar background
