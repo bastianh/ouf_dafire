@@ -1,14 +1,14 @@
+local height, width, outerborder, innerborder = 34, 170, 1, 1
+
 local function Debug(...) ChatFrame1:AddMessage(string.join(" ", "|cFF33FF99oUF_dafire|r:", ...)) end
 
 local wotlk = select(4, GetBuildInfo()) >= 3e4
 
-local texture = [[Interface\AddOns\oUF_Dafire\textures\statusbar]]
-local height, width = 38, 180
 local UnitReactionColor = UnitReactionColor
-local gray = {r = .3, g = .3, b = .3}
 
 local LSM = LibStub and LibStub:GetLibrary("LibSharedMedia-3.0", true)
 local font = LSM and LSM:Fetch("font","Calibri") or "Interface\\AddOns\\oUF_Dafire\\font.ttf" 
+local texture = LSM and LSM:Fetch("statusbar","Smudge") or [[Interface\AddOns\oUF_Dafire\textures\statusbar]]
 
 local playerClass = select(2, UnitClass("player")) -- combopoints for druid/rogue
 
@@ -39,7 +39,8 @@ local updateLevelString = function(self, event, unit)
 	if(level == -1) then
 		level = '??'
 	end
-	self.Level:SetFormattedText("%s",level)
+
+	self.Level:SetFormattedText("%s%s",classification[UnitClassification(unit)],level)
 end
 
 local scaleDebuffs = function(self, unit, aura)
@@ -105,32 +106,7 @@ local siValue = function(val)
 		return val
 	end
 end
---[[
-local OverrideUpdateHealth = function(self, event, unit, bar, min, max)
-	local color = self.colors.health[0]
-	bar:SetStatusBarColor(color[0],color[1],color[2])
- 	bar.bg:SetVertexColor(.5,.5,.5)
 
-	if(UnitIsTapped(unit) and not UnitIsTappedByPlayer(unit) or not UnitIsConnected(unit)) then
-		self:SetBackdropBorderColor(.3, .3, .3)
-	else
-		color = UnitReactionColor[UnitReaction(unit, 'player')] or gray
-		self:SetBackdropBorderColor(color.r, color.g, color.b)
-	end
-
-	if(UnitIsDead(unit)) then
-		bar:SetValue(0)
-		bar.value:SetText"Dead"
-	elseif(UnitIsGhost(unit)) then
-		bar:SetValue(0)
-		bar.value:SetText"Ghost"
-	elseif(not UnitIsConnected(unit)) then
-		bar.value:SetText"Offline"
-	else
-		bar.value:SetFormattedText('%s/%s', siValue(min), siValue(max))
-	end
-end
-]]
 local PostUpdateHealth = function(self, event, unit, bar, min, max)
 	if wotlk and self.Threat then
 		self.Threat:SetFormattedText("%.1f%%", select(3,UnitDetailedThreatSituation("player", "target")))
@@ -175,8 +151,8 @@ local backdrop = {
 }
 
 local func = function(settings, self, unit)
-	local width = width
-	local height = height -- this allows changing without changing file local
+	local width = settings["initial-width"]
+	local height = settings["initial-height"] 	
 	
 	self.menu = menu
 
@@ -192,12 +168,9 @@ local func = function(settings, self, unit)
 
 	-- Health bar
 	local hp = CreateFrame"StatusBar"
-	hp:SetHeight(18)
 	hp:SetStatusBarTexture(texture)
 
 	hp:SetParent(self)
-	hp:SetPoint("TOPLEFT",3,-3)
-	hp:SetPoint("TOPRIGHT",-3,-3)
 	hp.colorTapping = true
 	hp.colorClass = true
 	hp.colorHappiness = true
@@ -207,7 +180,7 @@ local func = function(settings, self, unit)
 
 	local hpp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	if unit == "targettarget" then
-		hpp:SetPoint("RIGHT",hp, -3, 0)
+		hpp:SetPoint("RIGHT",hp, -1*outerborder, 0)
 		hpp:SetJustifyH"RIGHT"	
 	else
 		hpp:SetAllPoints(hp)
@@ -217,13 +190,16 @@ local func = function(settings, self, unit)
 	hpp:SetTextColor(1, 1, 1)
 	hp.value = hpp
 	self.PostUpdateHealth = PostUpdateHealth
+
 --[[
 	-- Health bar background
 	local hpbg = hp:CreateTexture(nil, "BORDER")
 	hpbg:SetAllPoints(hp)
 	hpbg:SetTexture(texture)
-	hp.bg = hpb
+	--hpbg:SetTexture(0, 0, 0, .5)
+	hp.bg = hpbg
 ]]
+
 	-- Threat Display
 	if (unit == "targettarget") then
 	
@@ -234,7 +210,7 @@ local func = function(settings, self, unit)
 		threat:SetWidth(width-15)
 		threat:SetHeight(12)
 	
-		threat:SetPoint("LEFT",hp, 3, 0)
+		threat:SetPoint("LEFT",hp, outerborder, 0)
 		threat:SetJustifyH"LEFT"	
 	
 		threat.unit = "target"
@@ -247,52 +223,59 @@ local func = function(settings, self, unit)
 	if unit == "target" or unit == "player"  or (not unit) then
 		local portrait = CreateFrame("PlayerModel", nil, self)
 		portrait:SetScript("OnShow",function() this:SetCamera(0) end)
-		portrait:SetWidth(32)
-		portrait:SetHeight(32)
+		portrait:SetWidth(height-2*outerborder)
+		portrait:SetHeight(height-2*outerborder)
 		portrait.type = "3D"
 		if unit == "target" then	
-			portrait:SetPoint("TOPRIGHT", -3, -3)
-			hp:ClearAllPoints()
-			hp:SetPoint("TOPLEFT",3,-3)
-			hp:SetPoint("TOPRIGHT", portrait, "TOPLEFT",-1,0)
+			portrait:SetPoint("TOPRIGHT", -1*outerborder, -1*outerborder)
+			portrait.side = "right"
 		else
-			portrait:SetPoint("TOPLEFT", 3, -3)
-			hp:ClearAllPoints()
-			hp:SetPoint("TOPLEFT",portrait,"TOPRIGHT",1,0)
-			hp:SetPoint("TOPRIGHT",-3,-3)
+			portrait:SetPoint("TOPLEFT", outerborder, -1*outerborder)
+			portrait.side = "left"
 		end
 		self.Portrait = portrait
 	end
 	
 	-- Unit name
-	local name = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	if not settings.noname then
+		local name = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		
+		if unit == "targettarget" then
+			name:SetJustifyH"CENTER"
+			name:SetPoint("BOTTOM", hp, "TOP" ,0 ,-5)
+		elseif unit == "target" then
+			name:SetJustifyH"RIGHT"
+			name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -6)
+		else
+			name:SetJustifyH"LEFT"
+			name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -6)
+		end
+		name:SetFont(font, 12, "OUTLINE")
+		name:SetTextColor(1, 1, 1)
+		name:SetWidth(width-15)
+		name:SetHeight(12)
 	
-	if unit == "targettarget" then
-		name:SetJustifyH"CENTER"
-		name:SetPoint("BOTTOM", hp, "TOP" ,0 ,-5)
-	elseif unit == "target" then
-		name:SetJustifyH"RIGHT"
-		name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -6)
-	else
-		name:SetJustifyH"LEFT"
-		name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -6)
+		self.Name = name
 	end
-	name:SetFont(font, 12, "OUTLINE")
-	name:SetTextColor(1, 1, 1)
-	name:SetWidth(width-15)
-	name:SetHeight(12)
 
-	self.Name = name
-
-	if(settings.size ~= 'small') then
+	if settings.power then
 		-- Power bar
 		local pp = CreateFrame"StatusBar"
 		pp:SetStatusBarTexture(texture)
-
 		pp:SetParent(self)
-		pp:SetPoint("TOPLEFT",hp, "BOTTOMLEFT", 0, -2)
-		pp:SetPoint("TOPRIGHT",hp, "BOTTOMRIGHT", 0, -2)
-		pp:SetPoint("BOTTOM", 0, 3)
+		pp:SetHeight(10)
+		if self.Portrait then
+			if self.Portrait.side == "left" then
+				pp:SetPoint("BOTTOMRIGHT",-1*outerborder,outerborder)
+				pp:SetPoint("LEFT",self.Portrait,"RIGHT",innerborder,0)
+			else
+				pp:SetPoint("BOTTOMLEFT",outerborder,outerborder)
+				pp:SetPoint("RIGHT",self.Portrait,"LEFT",innerborder*-1,0)
+			end
+		else		
+			pp:SetPoint("BOTTOMRIGHT",-1*outerborder,outerborder)
+			pp:SetPoint("LEFT",outerborder,0)
+		end
 		pp.colorPower = true
 		self.Power = pp
 --[[
@@ -302,17 +285,29 @@ local func = function(settings, self, unit)
 		ppbg:SetTexture(texture)
 		pp.bg = ppbg
 ]]
-		local ppp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-		ppp:SetAllPoints(pp)
-		ppp:SetJustifyH"CENTER"
-		ppp:SetFont(font, 10)
-		ppp:SetTextColor(1, 1, 1)
+
+		if settings.power ~= "small" then	
+			local ppp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			ppp:SetAllPoints(pp)
+			ppp:SetJustifyH"CENTER"
+			ppp:SetFont(font, 10)
+			ppp:SetTextColor(1, 1, 1)
+			
+			pp.value = ppp
+			self.PostUpdatePower = PostUpdatePower
+		else
+			pp:SetHeight(6)
+		end
 		
-		pp.value = ppp
-		self.PostUpdatePower = PostUpdatePower
+		--if(unit == "pet") then
+		--	self.UNIT_HAPPINESS = updateInfoString
+		--	self:RegisterEvent"UNIT_HAPPINESS"
+		--end
+	end
 
 		-- Level String
-		local level = pp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	if not settings.nolevel then
+		local level = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		if unit == "target" then
 			level:SetJustifyH"LEFT"
 			level:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -6)				
@@ -323,34 +318,19 @@ local func = function(settings, self, unit)
 		level:SetFont(font, 11, "OUTLINE")
 		level:SetTextColor(1, 1, 1)		
 		self.Level = level
-		
-		
-		if unit=="target" and playerClass == "ROGUE" or playerClass == "DRUID" then
-		local cpoints = self:CreateFontString(nil, "OVERLAY")
-			cpoints:SetPoint("CENTER", self, "LEFT", -15, 3)
-			cpoints:SetFont(font, 38, "OUTLINE")
-			cpoints:SetTextColor(1,1,1)
-			cpoints:SetJustifyH("RIGHT")
-			self.CPoints = cpoints
-		end
-		-- Info string
-		--local info = pp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-		--info:SetPoint("LEFT", 2, -1)
-		--info:SetPoint("RIGHT", -2, 0)
-		--info:SetJustifyH"LEFT"
-		--info:SetFont(GameFontNormal:GetFont(), 11)
-		--info:SetTextColor(1, 1, 1)
-		--
-		--self.Info = info
-		
 		self.UNIT_LEVEL = updateLevelString
 		self:RegisterEvent"UNIT_LEVEL"
-
-		--if(unit == "pet") then
-		--	self.UNIT_HAPPINESS = updateInfoString
-		--	self:RegisterEvent"UNIT_HAPPINESS"
-		--end
 	end
+	
+	if unit=="target" and playerClass == "ROGUE" or playerClass == "DRUID" then
+		local cpoints = self:CreateFontString(nil, "OVERLAY")
+		cpoints:SetPoint("CENTER", self, "LEFT", -15, 3)
+		cpoints:SetFont(font, 38, "OUTLINE")
+		cpoints:SetTextColor(1,1,1)
+		cpoints:SetJustifyH("RIGHT")
+		self.CPoints = cpoints
+	end
+
 
 	if(unit == 'target') or (unit == 'targettarget') then
 		if (unit == 'target') then
@@ -432,30 +412,56 @@ local func = function(settings, self, unit)
 		self.inRangeAlpha = 1
 		self.outsideRangeAlpha = .4
 	end
+	
+	if self.Portrait then
+		if self.Portrait.side =='left' then
+			hp:SetPoint("TOPLEFT", self.Portrait, "TOPRIGHT",innerborder,0)
+			if self.Power then hp:SetPoint("BOTTOMRIGHT", self.Power, "TOPRIGHT",0,innerborder)
+			else hp:SetPoint("BOTTOMRIGHT", -1*outerborder, outerborder) end
+		else
+			hp:SetPoint("TOPRIGHT", self.Portrait, "TOPLEFT",innerborder*-1,0)
+			if self.Power then hp:SetPoint("BOTTOMLEFT", self.Power, "TOPLEFT",0,innerborder)
+			else hp:SetPoint("BOTTOMLEFT", -1*outerborder, outerborder) end
+		end
+	else
+		hp:SetPoint("TOPLEFT",outerborder,-1*outerborder)
+		if self.Power then
+			hp:SetPoint("BOTTOMRIGHT", self.Power, "TOPRIGHT", 0, innerborder)
+		else
+			hp:SetPoint("BOTTOMRIGHT", -1*outerborder, outerborder)
+		end
+	end
 end
+
+------------------------------------------------------------------------------
 	
 oUF:RegisterStyle("Normal", setmetatable({
 	["initial-width"] = width,
 	["initial-height"] = height,
+	["power"] = 'full'
+}, {__call = func}))
+
+oUF:RegisterStyle("Pet", setmetatable({
+	["initial-width"] = 80,
+	["initial-height"] = height - 12,
+	["power"] = 'small',
+	["noname"] = true,
+	["nolevel"] = true
 }, {__call = func}))
 
 oUF:RegisterStyle("Small", setmetatable({
 	["initial-width"] = width,
 	["initial-height"] = height - 14,
-	["size"] = 'small',
+	["nolevel"] = true
 }, {__call = func}))
 
 -- hack to get our level information updated.
 oUF:RegisterSubTypeMapping"UNIT_LEVEL"
 
 oUF:SetActiveStyle"Normal"
-
 -- :Spawn(unit, frame_name, isPet) --isPet is only used on headers.
 local player = oUF:Spawn"player"
 player:SetPoint("RIGHT", UIParent, "BOTTOM", -15, 200)
-
-local pet = oUF:Spawn"pet"
-pet:SetPoint('TOP', player, 'BOTTOM', -200, 0)
 
 local target = oUF:Spawn"target"
 target:SetPoint("LEFT", UIParent, "BOTTOM", 15, 200)
@@ -473,12 +479,12 @@ party:SetManyAttributes(
 )
 party:Show()
 
-oUF:SetActiveStyle"Small"
+oUF:SetActiveStyle"Pet"
+local pet = oUF:Spawn"pet"
+pet:SetPoint('TOPLEFT', player, 'BOTTOMLEFT',0,-2)
 
+oUF:SetActiveStyle"Small"
 local tot = oUF:Spawn"targettarget"
 tot:SetPoint("BOTTOM", 0, 250)
 
-
-p = player
-pp = pet
-t = target
+tt = tot
