@@ -32,12 +32,32 @@ local classification = {
 	trivial = 't',
 }
 
+local getDifficultyColor = function(level)
+	local levelDiff = level - UnitLevel("player")
+	if levelDiff >= 5 then
+		return 1.00, 0.10, 0.10
+	elseif levelDiff >= 3 then
+		return 1.00, 0.50,0.25
+	elseif levelDiff >= -2 then
+		return 1.00, 1.00, 1.00
+	elseif -levelDiff <= GetQuestGreenRange() then
+		return 0.25, 0.75, 0.25
+	end
+	return 0.50, 0.50, 0.50
+end
+
 local updateLevelString = function(self, event, unit)
 	if(unit ~= self.unit) then return end
 
 	local level = UnitLevel(unit)
 	if(level == -1) then
 		level = '??'
+	end
+
+	if UnitCanAttack("player", unit) then
+		self.Level:SetTextColor(getDifficultyColor(level))
+	else
+		self.Level:SetTextColor(1, 1, 1)
 	end
 
 	self.Level:SetFormattedText("%s%s",classification[UnitClassification(unit)],level)
@@ -98,6 +118,7 @@ local updateInfoString = function(self, event, unit)
 	)
 end
 ]]
+
 
 local siValue = function(val)
 	if(val >= 1e4) then
