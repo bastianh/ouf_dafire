@@ -50,14 +50,15 @@ local updateLevelString = function(self, event, unit)
 	if(unit ~= self.unit) then return end
 
 	local level = UnitLevel(unit)
-	if(level == -1) then
-		level = '??'
-	end
-
+	
 	if UnitCanAttack("player", unit) then
 		self.Level:SetTextColor(getDifficultyColor(level))
 	else
 		self.Level:SetTextColor(1, 1, 1)
+	end
+	
+	if(level == -1) then
+		level = '??'
 	end
 
 	self.Level:SetFormattedText("%s%s",classification[UnitClassification(unit)],level)
