@@ -66,11 +66,9 @@ end
 
 local scaleDebuffs = function(self, unit, aura)
 	local debuffs = self.Debuffs
-	local newscale, index = 1, 1
-	while debuffs[index] and debuffs[index]:IsVisible() do index = index + 1 end
-	local debuffcount = index - 1
+	local newscale = 1
+	local debuffcount = debuffs.visibleDebuffs
 	if debuffcount == debuffs.debuffcount then return end
-	--Debug("Debuffs",tostring(debuffcount))
 	if debuffcount < 2 then newscale = 1.5
 	elseif debuffcount > 8 then newscale = 1
 	elseif debuffcount < 4 then newscale = 1.4
