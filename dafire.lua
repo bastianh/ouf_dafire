@@ -408,6 +408,14 @@ local func = function(settings, self, unit)
 
 		self.Debuffs = debuffs
 	elseif (unit == 'player') then
+		
+		-- Fader (needs oUF_Fader)
+		self.NormalAlpha = .5
+		self.Fader = {
+			[1] = {Combat = 1, PlayerTarget = 1}, 
+			[2] = {UnitMaxHealth = 0, PlayerMaxHealth = 0}
+		}
+		
 		self:RegisterEvent"PLAYER_UPDATE_RESTING"
 		self.PLAYER_UPDATE_RESTING = function(self)
 			if(IsResting()) then
@@ -507,4 +515,3 @@ oUF:SetActiveStyle"Small"
 local tot = oUF:Spawn"targettarget"
 tot:SetPoint("BOTTOM", 0, 250)
 
-tt = tot
