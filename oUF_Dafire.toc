@@ -2,6 +2,6 @@
 ## Author: dafire
 ## Title: oUF dafire
 ## Notes: agUF style oUF layout
-## OptionalDeps: MobHealth, tekErr, daFonts, tekticles
+## OptionalDeps: MobHealth, tekErr, daFonts, tekticles, oUF_DruidMana, oUF_Fader
 ## RequiredDeps: oUF
 dafire.lua
