@@ -80,44 +80,6 @@ local scaleDebuffs = function(self, unit, aura)
 	--Debug("Debuffs Setscale",tostring(newscale))
 end
 
---[[
-local updateInfoString = function(self, event, unit)
-	if(unit ~= self.unit) then return end
-
-	local level = UnitLevel(unit)
-	if(level == -1) then
-		level = '??'
-	end
-
-	local class, rclass = UnitClass(unit)
-	local color = RAID_CLASS_COLORS[rclass]
-	if(not UnitIsPlayer(unit)) then
-		class = UnitCreatureFamily(unit) or UnitCreatureType(unit)
-	end
-
-	local happiness
-	if(unit == 'pet') then
-		happiness = GetPetHappiness()
-		if(happiness == 1) then
-			happiness = ":<"
-		elseif(happiness == 2) then
-			happiness = ":|"
-		elseif(happiness == 3) then
-			happiness = ":D"
-		end
-	end
-
-	self.Info:SetFormattedText(
-		"L%s%s |cff%02x%02x%02x%s|r %s",
-		level,
-		classification[UnitClassification(unit)],
-		color.r * 255, color.g * 255, color.b * 255,
-		class,
-		happiness or ''
-	)
-end
-]]
-
 
 local siValue = function(val)
 	if(val >= 1e4) then
@@ -170,6 +132,27 @@ local backdrop = {
 	--insets = {left = 4, right = 4, top = 4, bottom = 4},
 }
 
+local function create_castbar(frame,unit)
+    local castbar = CreateFrame"StatusBar"
+    castbar:SetStatusBarTexture(texture)
+    castbar:SetParent(self)
+    castbar:SetHeight(10)
+    
+    local back = CreateFrame("Frame",nil,castbar)
+    back:SetFrameStrata("BACKGROUND")
+    back:SetBackdrop(backdrop)
+    back:SetBackdropColor(0, 0, 0, 1)
+    back:SetPoint("BOTTOMRIGHT",frame,"TOPRIGHT",0,8)
+    back:SetPoint("BOTTOMLEFT",frame,"TOPLEFT",0,8)
+    back:SetHeight(14)
+    
+    --castbar:SetPoint("TOPRIGHT",back,-1,-1)
+    --castbar:SetPoint("BOTTOMLEFT",back,1,1)
+    castbar:SetAllPoints(back)
+    
+    return castbar
+end
+
 local func = function(settings, self, unit)
 	local width = settings["initial-width"]
 	local height = settings["initial-height"] 	
@@ -184,7 +167,7 @@ local func = function(settings, self, unit)
 
 	self:SetBackdrop(backdrop)
 	self:SetBackdropColor(0, 0, 0, 1)
-	self:SetBackdropBorderColor(.3, .3, .3, 1)
+--	self:SetBackdropBorderColor(.3, .3, .3, 1)
 
 	-- Health bar
 	local hp = CreateFrame"StatusBar"
@@ -425,8 +408,13 @@ local func = function(settings, self, unit)
 				self:SetBackdropBorderColor(color.r, color.g, color.b)
 			end
 		end
+		
 	end
 
+	if (unit == 'target') or (unit == 'player') then
+	    self.Castbar = create_castbar(self,unit)	
+	end
+	
 	local leader = self:CreateTexture(nil, "OVERLAY")
 	leader:SetHeight(16)
 	leader:SetWidth(16)
