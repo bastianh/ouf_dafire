@@ -1,4 +1,4 @@
-local height, width, outerborder, innerborder = 34, 170, 1, 1
+local height, width, innerborder = 35, 170, 1
 
 local function Debug(...) ChatFrame1:AddMessage(string.join(" ", "|cFF33FF99oUF_dafire|r:", ...)) end
 
@@ -129,26 +129,38 @@ end
 local backdrop = {
 	bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", tile = true, tileSize = 16,
 	--edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 16,
+	insets ={left = -1, right = -1, top = -1, bottom = -1},
 	--insets = {left = 4, right = 4, top = 4, bottom = 4},
 }
 
 local function create_castbar(frame,unit)
     local castbar = CreateFrame"StatusBar"
     castbar:SetStatusBarTexture(texture)
-    castbar:SetParent(self)
-    castbar:SetHeight(10)
-    
-    local back = CreateFrame("Frame",nil,castbar)
-    back:SetFrameStrata("BACKGROUND")
-    back:SetBackdrop(backdrop)
-    back:SetBackdropColor(0, 0, 0, 1)
-    back:SetPoint("BOTTOMRIGHT",frame,"TOPRIGHT",0,8)
-    back:SetPoint("BOTTOMLEFT",frame,"TOPLEFT",0,8)
-    back:SetHeight(14)
-    
-    --castbar:SetPoint("TOPRIGHT",back,-1,-1)
-    --castbar:SetPoint("BOTTOMLEFT",back,1,1)
-    castbar:SetAllPoints(back)
+	castbar:SetBackdrop(backdrop)
+	castbar:SetBackdropColor(0,0,0,.5)
+    castbar:SetParent(frame)
+    castbar:SetHeight(14)
+
+    castbar:SetPoint("BOTTOMRIGHT",frame,"TOPRIGHT",0,8)
+    castbar:SetPoint("BOTTOMLEFT",frame,"TOPLEFT",0,8)
+	
+	local time = castbar:CreateFontString(nil, "OVERLAY")
+	time:SetPoint("RIGHT", castbar, -2, 0)
+	time:SetFontObject(GameFontNormalSmall)
+	time:SetTextColor(1, 1, 1)
+	time:SetJustifyH("RIGHT")
+	castbar.Time = time
+	
+	local text = castbar:CreateFontString(nil, "OVERLAY")
+	text:SetPoint("LEFT", castbar, 2, 0)
+	text:SetFontObject(GameFontNormalSmall)
+	text:SetTextColor(1, 1, 1)
+	text:SetJustifyH("LEFT")
+	castbar.Text = text
+	
+	spark = castbar:CreateTexture()
+	spark:SetBlendMode("ADD")
+	castbar.Spark = spark
     
     return castbar
 end
@@ -183,7 +195,7 @@ local func = function(settings, self, unit)
 
 	local hpp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	if unit == "targettarget" then
-		hpp:SetPoint("RIGHT",hp, -1*outerborder, 0)
+		hpp:SetPoint("RIGHT",hp, 0, 0)
 		hpp:SetJustifyH"RIGHT"	
 	else
 		hpp:SetAllPoints(hp)
@@ -213,7 +225,7 @@ local func = function(settings, self, unit)
 		threat:SetWidth(width-15)
 		threat:SetHeight(12)
 	
-		threat:SetPoint("LEFT",hp, outerborder, 0)
+		threat:SetPoint("LEFT",hp, 0, 0)
 		threat:SetJustifyH"LEFT"	
 	
 		threat.unit = "target"
@@ -226,14 +238,14 @@ local func = function(settings, self, unit)
 	if unit == "target" or unit == "player"  or (not unit) then
 		local portrait = CreateFrame("PlayerModel", nil, self)
 		portrait:SetScript("OnShow",function() this:SetCamera(0) end)
-		portrait:SetWidth(height-2*outerborder)
-		portrait:SetHeight(height-2*outerborder)
+		portrait:SetWidth(height)
+		portrait:SetHeight(height)
 		portrait.type = "3D"
 		if unit == "target" then	
-			portrait:SetPoint("TOPRIGHT", -1*outerborder, -1*outerborder)
+			portrait:SetPoint("TOPRIGHT")
 			portrait.side = "right"
 		else
-			portrait:SetPoint("TOPLEFT", outerborder, -1*outerborder)
+			portrait:SetPoint("TOPLEFT")
 			portrait.side = "left"
 		end
 		self.Portrait = portrait
@@ -269,15 +281,15 @@ local func = function(settings, self, unit)
 		pp:SetHeight(10)
 		if self.Portrait then
 			if self.Portrait.side == "left" then
-				pp:SetPoint("BOTTOMRIGHT",-1*outerborder,outerborder)
+				pp:SetPoint("BOTTOMRIGHT")
 				pp:SetPoint("LEFT",self.Portrait,"RIGHT",innerborder,0)
 			else
-				pp:SetPoint("BOTTOMLEFT",outerborder,outerborder)
+				pp:SetPoint("BOTTOMLEFT")
 				pp:SetPoint("RIGHT",self.Portrait,"LEFT",innerborder*-1,0)
 			end
 		else		
-			pp:SetPoint("BOTTOMRIGHT",-1*outerborder,outerborder)
-			pp:SetPoint("LEFT",outerborder,0)
+			pp:SetPoint("BOTTOMRIGHT")
+			pp:SetPoint("LEFT")
 		end
 		pp.colorPower = true
 		self.Power = pp
@@ -433,18 +445,18 @@ local func = function(settings, self, unit)
 		if self.Portrait.side =='left' then
 			hp:SetPoint("TOPLEFT", self.Portrait, "TOPRIGHT",innerborder,0)
 			if self.Power then hp:SetPoint("BOTTOMRIGHT", self.Power, "TOPRIGHT",0,innerborder)
-			else hp:SetPoint("BOTTOMRIGHT", -1*outerborder, outerborder) end
+			else hp:SetPoint("BOTTOMRIGHT") end
 		else
 			hp:SetPoint("TOPRIGHT", self.Portrait, "TOPLEFT",innerborder*-1,0)
 			if self.Power then hp:SetPoint("BOTTOMLEFT", self.Power, "TOPLEFT",0,innerborder)
-			else hp:SetPoint("BOTTOMLEFT", -1*outerborder, outerborder) end
+			else hp:SetPoint("BOTTOMLEFT") end
 		end
 	else
-		hp:SetPoint("TOPLEFT",outerborder,-1*outerborder)
+		hp:SetPoint("TOPLEFT")
 		if self.Power then
 			hp:SetPoint("BOTTOMRIGHT", self.Power, "TOPRIGHT", 0, innerborder)
 		else
-			hp:SetPoint("BOTTOMRIGHT", -1*outerborder, outerborder)
+			hp:SetPoint("BOTTOMRIGHT")
 		end
 	end
 end
