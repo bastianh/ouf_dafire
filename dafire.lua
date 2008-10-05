@@ -4,7 +4,7 @@ local function Debug(...) ChatFrame1:AddMessage(string.join(" ", "|cFF33FF99oUF_
 
 local wotlk = select(4, GetBuildInfo()) >= 3e4
 
-local UnitReactionColor = UnitReactionColor
+--? local UnitReactionColor = UnitReactionColor
 
 local LSM = LibStub and LibStub:GetLibrary("LibSharedMedia-3.0", true)
 local font = LSM and LSM:Fetch("font","Calibri") or "Interface\\AddOns\\oUF_Dafire\\font.ttf" 
@@ -90,9 +90,9 @@ local siValue = function(val)
 end
 
 local PostUpdateHealth = function(self, event, unit, bar, min, max)
-	if wotlk and self.Threat then
-		self.Threat:SetFormattedText("%.1f%%", select(3,UnitDetailedThreatSituation("player", "target")))
-	end
+	--if wotlk and self.Threat then
+	--	self.Threat:SetFormattedText("%.1f%%", select(3,UnitDetailedThreatSituation("player", "target")))
+	--end
 	if(UnitIsDead(unit)) then
 		bar.value:SetText"Dead"
 	elseif(UnitIsGhost(unit)) then
@@ -411,15 +411,18 @@ local func = function(settings, self, unit)
 			[2] = {UnitMaxHealth = 0, PlayerMaxHealth = 0}
 		}
 		
+		--TODO: something with resting
+		--[[
 		self:RegisterEvent"PLAYER_UPDATE_RESTING"
 		self.PLAYER_UPDATE_RESTING = function(self)
 			if(IsResting()) then
 				self:SetBackdropBorderColor(.3, .3, .8)
 			else
-				local color = UnitReactionColor[UnitReaction(unit, 'player')]
-				self:SetBackdropBorderColor(color.r, color.g, color.b)
+--?				local color = UnitReactionColor[UnitReaction(unit, 'player')]
+--?				self:SetBackdropBorderColor(color.r, color.g, color.b)
 			end
 		end
+		]]
 		
 	end
 
