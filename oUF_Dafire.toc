@@ -2,8 +2,8 @@
 ## Author: dafire
 ## Title: oUF dafire
 ## OptionalDeps: oUF, tekErr, daFonts, tekticles, oUF_DruidMana, oUF_Fader
-# ## RequiredDeps: oUF
-## X-oUF: oUF
-oUF\oUF.xml
-oUF_Fader\oUF_Fader.lua
+## RequiredDeps: oUF
+# ## X-oUF: oUF
+# oUF\oUF.xml
+# oUF_Fader\oUF_Fader.lua
 dafire.lua
