@@ -1,7 +1,9 @@
 ## Interface: 20400
 ## Author: dafire
 ## Title: oUF dafire
-## Notes: agUF style oUF layout
-## OptionalDeps: MobHealth, tekErr, daFonts, tekticles, oUF_DruidMana, oUF_Fader
+## OptionalDeps: oUF, tekErr, daFonts, tekticles, oUF_DruidMana, oUF_Fader
 ## RequiredDeps: oUF
+# ## X-oUF: oUF
+# oUF\oUF.xml
+# oUF_Fader\oUF_Fader.lua
 dafire.lua
