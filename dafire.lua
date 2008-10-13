@@ -448,13 +448,13 @@ local func = function(settings, self, unit)
 			if(IsResting()) then
 				self:SetBackdropBorderColor(.3, .3, .8)
 			else
-				local color = UnitReactionColor[UnitReaction(unit, 'player')]
-				self:SetBackdropBorderColor(color.r, color.g, color.b)
+--?				local color = UnitReactionColor[UnitReaction(unit, 'player')]
+--?				self:SetBackdropBorderColor(color.r, color.g, color.b)
 			end
 		end
 
 		]]
-
+		
 	end
 
 	if (unit == 'target') or (unit == 'player') then
