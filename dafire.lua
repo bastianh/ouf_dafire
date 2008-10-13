@@ -69,9 +69,9 @@ local scaleDebuffs = function(self, unit, aura)
 	local newscale = 1
 	local debuffcount = debuffs.visibleDebuffs
 	if debuffcount == debuffs.debuffcount then return end
-	if debuffcount < 2 then newscale = 1.5
-	elseif debuffcount > 8 then newscale = 1
-	elseif debuffcount < 4 then newscale = 1.4
+	if debuffcount < 4 then newscale = 1.8
+	elseif debuffcount > 10 then newscale = 1
+	elseif debuffcount < 6 then newscale = 1.4
 	else newscale = 1.2
 	end
 	if newscale == debuffs.scale then return end
@@ -194,13 +194,13 @@ local func = function(settings, self, unit)
 	self.Health = hp
 
 	local hpp = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	if unit == "targettarget" then
-		hpp:SetPoint("RIGHT",hp, 0, 0)
-		hpp:SetJustifyH"RIGHT"	
-	else
+--	if unit == "targettarget" then
+--		hpp:SetPoint("RIGHT",hp, 0, 0)
+--		hpp:SetJustifyH"RIGHT"	
+--	else
 		hpp:SetAllPoints(hp)
 		hpp:SetJustifyH"CENTER"
-	end
+--	end
 	hpp:SetFont(font, 12)
 	hpp:SetTextColor(1, 1, 1)
 	hp.value = hpp
@@ -253,19 +253,27 @@ local func = function(settings, self, unit)
 	
 	-- Unit name
 	if not settings.noname then
-		local name = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		local name = hp:CreateFontString(nil, "OVERLAY")
 		
-		if unit == "targettarget" then
-			name:SetJustifyH"CENTER"
-			name:SetPoint("BOTTOM", hp, "TOP" ,0 ,-5)
-		elseif unit == "target" then
+--[[		if unit == "targettarget" then
+			name:SetFont(font, 12)
 			name:SetJustifyH"RIGHT"
-			name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -6)
-		else
+			name:SetPoint("RIGHT", -2, 0)
+		elseif unit == "pet" then
+			name:SetFont(font, 12)
 			name:SetJustifyH"LEFT"
-			name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -6)
+			name:SetPoint("LEFT", 2, 0)		
+		else ]]
+		if unit == "target" or unit == "targettarget" then
+			name:SetFont(font, 12, "OUTLINE")
+			name:SetJustifyH"RIGHT"
+			name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -5)
+		else
+			name:SetFont(font, 12, "OUTLINE")
+			name:SetJustifyH"LEFT"
+			name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -5)
 		end
-		name:SetFont(font, 12, "OUTLINE")
+		
 		name:SetTextColor(1, 1, 1)
 		name:SetWidth(width-15)
 		name:SetHeight(12)
@@ -346,19 +354,33 @@ local func = function(settings, self, unit)
 		self.CPoints = cpoints
 	end
 
+	if unit == 'target' then
+		local buffs = CreateFrame("Frame", nil, self)
+		buffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0,1)
+		buffs:SetHeight(18*3)
+		buffs:SetWidth(18*8)
+		buffs:SetFrameStrata("LOW")
+		buffs.size = 18
+		buffs.num = 8*3
+		buffs.initialAnchor = "BOTTOMLEFT"
+		buffs['growth-x'] = "RIGHT"
+		buffs['growth-y'] = "UP"
+		self.Buffs = buffs
 
-	if(unit == 'target') or (unit == 'targettarget') then
-		if (unit == 'target') then
-			local buffs = CreateFrame("Frame", nil, self)
-			buffs:SetPoint("TOPLEFT", self, "TOPRIGHT")
-			buffs:SetHeight(18*3)
-			buffs:SetWidth(18*8)
-			buffs.size = 18
-			buffs.num = 8*3
-			buffs.initialAnchor = "TOPLEFT"
-			buffs['growth-y'] = "DOWN"
-			self.Buffs = buffs
-		end
+		-- Debuffs
+		local debuffs = CreateFrame("Frame", nil, self)
+		debuffs:SetPoint("TOPLEFT", self, "TOPRIGHT")
+		debuffs:SetHeight(18*4)
+		debuffs:SetWidth(18*10)
+		debuffs['growth-y'] = "DOWN"
+		debuffs.initialAnchor = "TOPLEFT"
+		debuffs.size = 18
+		debuffs.showDebuffType = true
+		debuffs.num = 40
+		self.PostUpdateAura = scaleDebuffs
+		self.Debuffs = debuffs
+
+	elseif unit == 'targettarget' then
 		
 		-- Debuffs
 		local debuffs = CreateFrame("Frame", nil, self)
@@ -369,13 +391,7 @@ local func = function(settings, self, unit)
 		debuffs.initialAnchor = "TOPLEFT"
 		debuffs.size = 18
 		debuffs.showDebuffType = true
-		if (unit == 'targettarget') then
-			debuffs.num = 10
-		else -- target
-			debuffs.num = 40
-			self.PostUpdateAura = scaleDebuffs
-		end
-		
+		debuffs.num = 10		
 		self.Debuffs = debuffs
 		
 	elseif(unit ~= 'player') then
@@ -402,15 +418,28 @@ local func = function(settings, self, unit)
 		debuffs.num = math.floor(width / debuffs.size + .5)
 
 		self.Debuffs = debuffs
+		
+		if (unit == 'pet') then
+			-- Fader (needs oUF_Fader)
+			self.NormalAlpha = 0
+			self.Fader = {
+			    [1] = { Combat = 1, PlayerTarget = 1}, 
+			    [2] = { notUnitMaxHealth = .5, notUnitMaxMana = .5 },
+			    [3] = { notPlayerMaxHealth = .3 , notPlayerMaxMana = .3 },
+			    --[3] = { notCombat = 0.1 }
+			}		
+		end
+		
 	elseif (unit == 'player') then
 		
 		-- Fader (needs oUF_Fader)
-		self.NormalAlpha = .5
+		self.NormalAlpha = 0
 		self.Fader = {
-			[1] = {Combat = 1, PlayerTarget = 1}, 
-			[2] = {UnitMaxHealth = 0, PlayerMaxHealth = 0}
+	            [1] = { Combat = 1, PlayerTarget = 1}, 
+	            [2] = { notUnitMaxHealth = .5, notUnitMaxMana = .5 },
+		    --[3] = { notCombat = 0.1 }
 		}
-		
+		--[[
 		self:RegisterEvent"PLAYER_UPDATE_RESTING"
 		self.PLAYER_UPDATE_RESTING = function(self)
 			if(IsResting()) then
@@ -420,7 +449,7 @@ local func = function(settings, self, unit)
 				self:SetBackdropBorderColor(color.r, color.g, color.b)
 			end
 		end
-		
+		]]		
 	end
 
 	if (unit == 'target') or (unit == 'player') then
@@ -469,17 +498,11 @@ oUF:RegisterStyle("Normal", setmetatable({
 	["power"] = 'full'
 }, {__call = func}))
 
-oUF:RegisterStyle("Pet", setmetatable({
-	["initial-width"] = 80,
-	["initial-height"] = height - 12,
-	["power"] = 'small',
-	["noname"] = true,
-	["nolevel"] = true
-}, {__call = func}))
 
 oUF:RegisterStyle("Small", setmetatable({
-	["initial-width"] = width,
-	["initial-height"] = height - 14,
+	["initial-width"] = 100,
+	["initial-height"] = height - 12,
+	["power"] = 'small',
 	["nolevel"] = true
 }, {__call = func}))
 
@@ -489,10 +512,10 @@ oUF:RegisterSubTypeMapping"UNIT_LEVEL"
 oUF:SetActiveStyle"Normal"
 -- :Spawn(unit, frame_name, isPet) --isPet is only used on headers.
 local player = oUF:Spawn"player"
-player:SetPoint("RIGHT", UIParent, "BOTTOM", -15, 200)
+player:SetPoint("RIGHT", UIParent, "BOTTOM", -15, 150)
 
 local target = oUF:Spawn"target"
-target:SetPoint("LEFT", UIParent, "BOTTOM", 15, 200)
+target:SetPoint("LEFT", UIParent, "BOTTOM", 15, 150)
 
 local party = oUF:Spawn("header", "oUF_Party")
 party:SetPoint("TOPLEFT", 30, -30)
@@ -507,11 +530,11 @@ party:SetManyAttributes(
 )
 party:Show()
 
-oUF:SetActiveStyle"Pet"
-local pet = oUF:Spawn"pet"
-pet:SetPoint('TOPLEFT', player, 'BOTTOMLEFT',0,-2)
-
 oUF:SetActiveStyle"Small"
+
+local pet = oUF:Spawn"pet"
+pet:SetPoint('TOPLEFT', player, 'BOTTOMLEFT',0,-8)
+
 local tot = oUF:Spawn"targettarget"
-tot:SetPoint("BOTTOM", 0, 250)
+tot:SetPoint("TOPRIGHT", target, "BOTTOMRIGHT", 0,-8)
 
