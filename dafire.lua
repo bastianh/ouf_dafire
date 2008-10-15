@@ -134,15 +134,15 @@ local backdrop = {
 }
 
 local function create_castbar(frame,unit)
-    local castbar = CreateFrame"StatusBar"
-    castbar:SetStatusBarTexture(texture)
+	local castbar = CreateFrame"StatusBar"
+	castbar:SetStatusBarTexture(texture)
 	castbar:SetBackdrop(backdrop)
 	castbar:SetBackdropColor(0,0,0,.5)
-    castbar:SetParent(frame)
-    castbar:SetHeight(14)
+	--castbar:SetParent(frame)
+	castbar:SetHeight(14)
 
-    castbar:SetPoint("BOTTOMRIGHT",frame,"TOPRIGHT",0,8)
-    castbar:SetPoint("BOTTOMLEFT",frame,"TOPLEFT",0,8)
+	castbar:SetPoint("BOTTOMRIGHT",frame,"TOPRIGHT",0,8)
+	castbar:SetPoint("BOTTOMLEFT",frame,"TOPLEFT",0,8)
 	
 	local time = castbar:CreateFontString(nil, "OVERLAY")
 	time:SetPoint("RIGHT", castbar, -2, 0)
@@ -162,7 +162,7 @@ local function create_castbar(frame,unit)
 	spark:SetBlendMode("ADD")
 	castbar.Spark = spark
     
-    return castbar
+	return castbar
 end
 
 local func = function(settings, self, unit)
@@ -470,9 +470,9 @@ local func = function(settings, self, unit)
 
 	-- Range fading on party
 	if(not unit) then
-		self.Range = true
-		self.inRangeAlpha = 1
-		self.outsideRangeAlpha = .4
+	--	self.Range = true
+--		self.inRangeAlpha = 1
+--		self.outsideRangeAlpha = .4
 	end
 	
 	if self.Portrait then
