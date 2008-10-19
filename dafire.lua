@@ -1,6 +1,6 @@
 local height, width, innerborder = 35, 170, 1
 
-local function Debug(...) ChatFrame1:AddMessage(string.join(" ", "|cFF33FF99oUF_dafire|r:", ...)) end
+local function Debug(...) ChatFrame1:AddMessage(string.join(" ", "|cFF33FF99oUF_dafire|r:", tostringall(...))) end
 
 local wotlk = select(4, GetBuildInfo()) >= 3e4
 
@@ -132,6 +132,17 @@ local backdrop = {
 	insets ={left = -1, right = -1, top = -1, bottom = -1},
 	--insets = {left = 4, right = 4, top = 4, bottom = 4},
 }
+
+local function create_threatinfo(frame,unit)
+	local threat = frame:CreateTexture(nil,"OVERLAY")
+	threat:SetHeight(200)
+	threat:SetWidth(200)
+	threat:SetPoint("BOTTOMLEFT",frame,"TOPRIGHT")
+	threat:SetTexture[[Interface\TargetingFrame\UI-TargetingFrame-Flash]]
+	--threat:SetTexCoord(6/8, 7/8, 1/2, 1)
+	Debug(unit)
+	frame.Threat = threat
+end
 
 local function create_castbar(frame,unit)
 	local castbar = CreateFrame"StatusBar"
@@ -475,6 +486,8 @@ local func = function(settings, self, unit)
 --		self.outsideRangeAlpha = .4
 	end
 	
+	create_threatinfo(self,unit)
+	
 	if self.Portrait then
 		if self.Portrait.side =='left' then
 			hp:SetPoint("TOPLEFT", self.Portrait, "TOPRIGHT",innerborder,0)
@@ -543,3 +556,5 @@ pet:SetPoint('TOPLEFT', player, 'BOTTOMLEFT',0,-8)
 local tot = oUF:Spawn"targettarget"
 tot:SetPoint("TOPRIGHT", target, "BOTTOMRIGHT", 0,-8)
 
+ppp = player
+ttt = target
