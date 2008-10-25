@@ -135,10 +135,10 @@ local backdrop = {
 
 local function create_threatinfo(frame,unit)
 	local threat = frame:CreateTexture(nil,"OVERLAY")
-	threat:SetHeight(200)
-	threat:SetWidth(200)
-	threat:SetPoint("BOTTOMLEFT",frame,"TOPRIGHT")
-	threat:SetTexture[[Interface\TargetingFrame\UI-TargetingFrame-Flash]]
+	threat:SetPoint("TOPRIGHT",frame,28,28)
+	threat:SetPoint("BOTTOMLEFT",frame,-28,-28)
+	threat:SetTexCoord(0, .609, 0, .253)
+	threat:SetTexture[[Interface\AddOns\oUF_Dafire\textures\test]]
 	--threat:SetTexCoord(6/8, 7/8, 1/2, 1)
 	Debug(unit)
 	frame.Threat = threat
