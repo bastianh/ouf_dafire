@@ -133,14 +133,18 @@ local backdrop = {
 	--insets = {left = 4, right = 4, top = 4, bottom = 4},
 }
 
-local function create_threatinfo(frame,unit)
+local function create_threatinfo(frame,unit,size)
 	local threat = frame:CreateTexture(nil,"OVERLAY")
-	threat:SetPoint("TOPRIGHT",frame,28,28)
-	threat:SetPoint("BOTTOMLEFT",frame,-28,-28)
-	threat:SetTexCoord(0, .609, 0, .253)
-	threat:SetTexture[[Interface\AddOns\oUF_Dafire\textures\test]]
-	--threat:SetTexCoord(6/8, 7/8, 1/2, 1)
-	Debug(unit)
+	if size == 1 then
+		threat:SetPoint("TOPRIGHT",frame,28,28)
+		threat:SetPoint("BOTTOMLEFT",frame,-28,-28)
+		threat:SetTexCoord(0, .918, 0, .186)
+	elseif  size == 2 then
+		threat:SetPoint("TOPRIGHT",myf,30,30)
+		threat:SetPoint("BOTTOMLEFT",myf,-30,-30)
+		threat:SetTexCoord(.078, .547, .214, .297)
+	end
+	threat:SetTexture[[Interface\AddOns\oUF_Dafire\textures\threat]]
 	frame.Threat = threat
 end
 
@@ -333,13 +337,15 @@ local func = function(settings, self, unit)
 			pp:SetHeight(6)
 		end
 		
-		--if(unit == "pet") then
+
+	end
+	
+	if(unit == "pet") then
+		create_threatinfo(self,unit,2)
 		--	self.UNIT_HAPPINESS = updateInfoString
 		--	self:RegisterEvent"UNIT_HAPPINESS"
-		--end
 	end
 
-		-- Level String
 	if not settings.nolevel then
 		local level = hp:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		if unit == "target" then
@@ -392,6 +398,8 @@ local func = function(settings, self, unit)
 		self.Debuffs = debuffs
 
 	elseif unit == 'targettarget' then
+		
+		create_threatinfo(self,unit,2)
 		
 		-- Debuffs
 		local debuffs = CreateFrame("Frame", nil, self)
@@ -469,7 +477,8 @@ local func = function(settings, self, unit)
 	end
 
 	if (unit == 'target') or (unit == 'player') then
-	    self.Castbar = create_castbar(self,unit)	
+		create_threatinfo(self,unit,1)
+		self.Castbar = create_castbar(self,unit,1)	
 	end
 	
 	local leader = self:CreateTexture(nil, "OVERLAY")
@@ -481,12 +490,12 @@ local func = function(settings, self, unit)
 
 	-- Range fading on party
 	if(not unit) then
+		create_threatinfo(self,unit,1)
 	--	self.Range = true
 --		self.inRangeAlpha = 1
 --		self.outsideRangeAlpha = .4
 	end
 	
-	create_threatinfo(self,unit)
 	
 	if self.Portrait then
 		if self.Portrait.side =='left' then
@@ -558,3 +567,4 @@ tot:SetPoint("TOPRIGHT", target, "BOTTOMRIGHT", 0,-8)
 
 ppp = player
 ttt = target
+ttott = tot
