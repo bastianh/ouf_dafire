@@ -140,8 +140,8 @@ local function create_threatinfo(frame,unit,size)
 		threat:SetPoint("BOTTOMLEFT",frame,-28,-28)
 		threat:SetTexCoord(0, .918, 0, .186)
 	elseif  size == 2 then
-		threat:SetPoint("TOPRIGHT",myf,30,30)
-		threat:SetPoint("BOTTOMLEFT",myf,-30,-30)
+		threat:SetPoint("TOPRIGHT",frame,30,30)
+		threat:SetPoint("BOTTOMLEFT",frame,-30,-30)
 		threat:SetTexCoord(.078, .547, .214, .297)
 	end
 	threat:SetTexture[[Interface\AddOns\oUF_Dafire\textures\threat]]
