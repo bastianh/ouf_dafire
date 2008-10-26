@@ -140,8 +140,8 @@ local function create_threatinfo(frame,unit,size)
 		threat:SetPoint("BOTTOMLEFT",frame,-28,-28)
 		threat:SetTexCoord(0, .918, 0, .186)
 	elseif  size == 2 then
-		threat:SetPoint("TOPRIGHT",frame,30,30)
-		threat:SetPoint("BOTTOMLEFT",frame,-30,-30)
+		threat:SetPoint("TOPRIGHT",frame,8,8)
+		threat:SetPoint("BOTTOMLEFT",frame,-8,-8)
 		threat:SetTexCoord(.078, .547, .214, .297)
 	end
 	threat:SetTexture[[Interface\AddOns\oUF_Dafire\textures\threat]]
@@ -154,10 +154,10 @@ local function create_castbar(frame,unit)
 	castbar:SetBackdrop(backdrop)
 	castbar:SetBackdropColor(0,0,0,.5)
 	--castbar:SetParent(frame)
-	castbar:SetHeight(14)
+	castbar:SetHeight(16)
 
-	castbar:SetPoint("BOTTOMRIGHT",frame,"TOPRIGHT",0,8)
-	castbar:SetPoint("BOTTOMLEFT",frame,"TOPLEFT",0,8)
+	castbar:SetPoint("BOTTOMRIGHT",frame,"TOPRIGHT",3,10)
+	castbar:SetPoint("BOTTOMLEFT",frame,"TOPLEFT",-3,10)
 	
 	local time = castbar:CreateFontString(nil, "OVERLAY")
 	time:SetPoint("RIGHT", castbar, -2, 0)
