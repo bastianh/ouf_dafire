@@ -134,7 +134,7 @@ local backdrop = {
 }
 
 local function create_threatinfo(frame,unit,size)
-	local threat = frame:CreateTexture(nil,"OVERLAY")
+	local threat = frame:CreateTexture(nil,"BACKGROUND")
 	if size == 1 then
 		threat:SetPoint("TOPRIGHT",frame,28,28)
 		threat:SetPoint("BOTTOMLEFT",frame,-28,-28)
