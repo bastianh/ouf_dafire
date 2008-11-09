@@ -2,13 +2,9 @@ local height, width, innerborder = 35, 170, 1
 
 local function Debug(...) ChatFrame1:AddMessage(string.join(" ", "|cFF33FF99oUF_dafire|r:", tostringall(...))) end
 
-local wotlk = select(4, GetBuildInfo()) >= 3e4
-
---? local UnitReactionColor = UnitReactionColor
-
 local LSM = LibStub and LibStub:GetLibrary("LibSharedMedia-3.0", true)
 local font = LSM and LSM:Fetch("font","Calibri") or "Interface\\AddOns\\oUF_Dafire\\font.ttf" 
-local texture = LSM and LSM:Fetch("statusbar","Smudge") or [[Interface\AddOns\oUF_Dafire\textures\statusbar]]
+local texture = LSM and LSM:Fetch("statusbar","Smudge",true) or [[Interface\AddOns\oUF_Dafire\textures\statusbar]]
 
 local playerClass = select(2, UnitClass("player")) -- combopoints for druid/rogue
 
@@ -69,7 +65,7 @@ local scaleDebuffs = function(self, unit, aura)
 	local newscale = 1
 	local debuffcount = debuffs.visibleDebuffs
 	if debuffcount == debuffs.debuffcount then return end
-	if debuffcount < 4 then newscale = 1.8
+	if debuffcount < 4 then newscale = 1.6
 	elseif debuffcount > 10 then newscale = 1
 	elseif debuffcount < 6 then newscale = 1.4
 	else newscale = 1.2
@@ -90,9 +86,6 @@ local siValue = function(val)
 end
 
 local PostUpdateHealth = function(self, event, unit, bar, min, max)
-	--if wotlk and self.Threat then
-	--	self.Threat:SetFormattedText("%.1f%%", select(3,UnitDetailedThreatSituation("player", "target")))
-	--end
 	if(UnitIsDead(unit)) then
 		bar.value:SetText"Dead"
 	elseif(UnitIsGhost(unit)) then
@@ -156,8 +149,8 @@ local function create_castbar(frame,unit)
 	--castbar:SetParent(frame)
 	castbar:SetHeight(16)
 
-	castbar:SetPoint("BOTTOMRIGHT",frame,"TOPRIGHT",3,10)
-	castbar:SetPoint("BOTTOMLEFT",frame,"TOPLEFT",-3,10)
+	castbar:SetPoint("BOTTOMRIGHT",frame,"TOPRIGHT",6,18)
+	castbar:SetPoint("BOTTOMLEFT",frame,"TOPLEFT",-6,18)
 	
 	local time = castbar:CreateFontString(nil, "OVERLAY")
 	time:SetPoint("RIGHT", castbar, -2, 0)
@@ -168,6 +161,7 @@ local function create_castbar(frame,unit)
 	
 	local text = castbar:CreateFontString(nil, "OVERLAY")
 	text:SetPoint("LEFT", castbar, 2, 0)
+	text:SetPoint("RIGHT", castbar, -10, 0)
 	text:SetFontObject(GameFontNormalSmall)
 	text:SetTextColor(1, 1, 1)
 	text:SetJustifyH("LEFT")
@@ -539,10 +533,10 @@ oUF:RegisterSubTypeMapping"UNIT_LEVEL"
 oUF:SetActiveStyle"Normal"
 -- :Spawn(unit, frame_name, isPet) --isPet is only used on headers.
 local player = oUF:Spawn"player"
-player:SetPoint("RIGHT", UIParent, "BOTTOM", -15, 150)
+player:SetPoint("RIGHT", UIParent, "BOTTOM", -15, 170)
 
 local target = oUF:Spawn"target"
-target:SetPoint("LEFT", UIParent, "BOTTOM", 15, 150)
+target:SetPoint("LEFT", UIParent, "BOTTOM", 15, 170)
 
 local party = oUF:Spawn("header", "oUF_Party")
 party:SetPoint("TOPLEFT", 30, -30)
@@ -564,7 +558,3 @@ pet:SetPoint('TOPLEFT', player, 'BOTTOMLEFT',0,-8)
 
 local tot = oUF:Spawn"targettarget"
 tot:SetPoint("TOPRIGHT", target, "BOTTOMRIGHT", 0,-8)
-
-ppp = player
-ttt = target
-ttott = tot
