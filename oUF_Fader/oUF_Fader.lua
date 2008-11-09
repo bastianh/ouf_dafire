@@ -39,7 +39,7 @@ local conditions = setmetatable({
 	UnitMaxHealth = function(obj, unit) return unit and not UnitIsDeadOrGhost(unit) and UnitHealth(unit) == UnitHealthMax(unit) end,
 	PlayerMaxHealth = function() return not UnitIsDeadOrGhost("player") and UnitHealth("player") == UnitHealthMax("player") end,
 	UnitMaxMana = function(obj, unit) return not UnitIsDeadOrGhost(unit) and UnitMana(unit) == UnitManaMax(unit) end,
-	PlayerMaxMana = function() return unit and not UnitIsDeadOrGhost("player") and UnitMana("player") == UnitManaMax("player") end,
+	PlayerMaxMana = function() return not UnitIsDeadOrGhost("player") and UnitMana("player") == UnitManaMax("player") end,
 	Stealth = IsStealthed,
 	Flying = IsFlying,
 	Resting = IsResting,
