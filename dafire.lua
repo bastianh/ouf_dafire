@@ -3,7 +3,7 @@ local height, width, innerborder = 35, 170, 1
 local function Debug(...) ChatFrame1:AddMessage(string.join(" ", "|cFF33FF99oUF_dafire|r:", tostringall(...))) end
 
 local LSM = LibStub and LibStub:GetLibrary("LibSharedMedia-3.0", true)
-local font = LSM and LSM:Fetch("font","Calibri") or "Interface\\AddOns\\oUF_Dafire\\font.ttf" 
+local font = LSM and LSM:Fetch("font","Calibri",true) or "Interface\\AddOns\\oUF_Dafire\\font.ttf" 
 local texture = LSM and LSM:Fetch("statusbar","Smudge",true) or [[Interface\AddOns\oUF_Dafire\textures\statusbar]]
 
 local playerClass = select(2, UnitClass("player")) -- combopoints for druid/rogue
@@ -475,12 +475,25 @@ local func = function(settings, self, unit)
 		self.Castbar = create_castbar(self,unit,1)	
 	end
 	
-	local leader = self:CreateTexture(nil, "OVERLAY")
+	local leader = hp:CreateTexture(nil, "OVERLAY")
 	leader:SetHeight(16)
 	leader:SetWidth(16)
-	leader:SetPoint("BOTTOM", self, "TOP", 0, -5)
+	leader:SetPoint("BOTTOM", hp, "TOP", 0, -5)
 	leader:SetTexture[[Interface\GroupFrame\UI-Group-LeaderIcon]]
 	self.Leader = leader
+
+	local ricon = hp:CreateTexture(nil, "OVERLAY")
+	if self.Portrait then
+		ricon:SetPoint("TOPLEFT", self.Portrait)
+		ricon:SetPoint("BOTTOMRIGHT", self.Portrait)
+	else
+		ricon:SetHeight(16)
+		ricon:SetWidth(16)
+		ricon:SetPoint("RIGHT")	
+	end
+	--leader:SetTexture[[Interface\GroupFrame\UI-Group-LeaderIcon]]
+	self.RaidIcon = ricon
+
 
 	-- Range fading on party
 	if(not unit) then
