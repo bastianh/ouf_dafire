@@ -19,47 +19,6 @@ local menu = function(self)
 	end
 end
 
-local classification = {
-	worldboss = 'B',
-	rareelite = 'R',
-	elite = '+',
-	rare = 'r',
-	normal = '',
-	trivial = 't',
-}
-
-local getDifficultyColor = function(level)
-	local levelDiff = level - UnitLevel("player")
-	if levelDiff >= 5 then
-		return 1.00, 0.10, 0.10
-	elseif levelDiff >= 3 then
-		return 1.00, 0.50,0.25
-	elseif levelDiff >= -2 then
-		return 1.00, 1.00, 1.00
-	elseif -levelDiff <= GetQuestGreenRange() then
-		return 0.25, 0.75, 0.25
-	end
-	return 0.50, 0.50, 0.50
-end
-
-local updateLevelString = function(self, event, unit)
-	if(unit ~= self.unit) then return end
-
-	local level = UnitLevel(unit)
-	
-	if UnitCanAttack("player", unit) then
-		self.Level:SetTextColor(getDifficultyColor(level))
-	else
-		self.Level:SetTextColor(1, 1, 1)
-	end
-	
-	if(level == -1) then
-		level = '??'
-	end
-
-	self.Level:SetFormattedText("%s%s",classification[UnitClassification(unit)],level)
-end
-
 local scaleDebuffs = function(self, unit, aura)
 	local debuffs = self.Debuffs
 	local newscale = 1
@@ -286,8 +245,7 @@ local func = function(settings, self, unit)
 		name:SetTextColor(1, 1, 1)
 		name:SetWidth(width-15)
 		name:SetHeight(12)
-	
-		self.Name = name
+                self:Tag(name,"[name]")
 	end
 
 	if settings.power then
@@ -350,11 +308,8 @@ local func = function(settings, self, unit)
 			level:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -6)		
 		end
 		level:SetFont(font, 11, "OUTLINE")
-		level:SetTextColor(1, 1, 1)		
-		self.Level = level
-		self.UNIT_LEVEL = updateLevelString
-		self:RegisterEvent"UNIT_LEVEL"
-	end
+                self:Tag(level,"[difficulty][smartlevel][plus][rare]")
+        end
 	
 	if unit=="target" and playerClass == "ROGUE" or playerClass == "DRUID" then
 		local cpoints = self:CreateFontString(nil, "OVERLAY")
@@ -539,9 +494,6 @@ oUF:RegisterStyle("Small", setmetatable({
 	["power"] = 'small',
 	["nolevel"] = true
 }, {__call = func}))
-
--- hack to get our level information updated.
-oUF:RegisterSubTypeMapping"UNIT_LEVEL"
 
 oUF:SetActiveStyle"Normal"
 -- :Spawn(unit, frame_name, isPet) --isPet is only used on headers.
