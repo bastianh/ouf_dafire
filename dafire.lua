@@ -109,7 +109,7 @@ local function create_castbar(frame,unit)
 	castbar:SetStatusBarTexture(texture)
 	castbar:SetBackdrop(backdrop)
 	castbar:SetBackdropColor(0,0,0,.5)
-	--castbar:SetParent(frame)
+	castbar:SetParent(UIParent) -- oUF needs a parent for postcaststop.. but we can't use the frame because of visibility .. so we use the uiparent for now
 	castbar:SetHeight(16)
 
 	castbar:SetPoint("BOTTOMRIGHT",frame,"TOPRIGHT",6,18)
