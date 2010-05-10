@@ -2,5 +2,3 @@
 ignore:
   - ouF_Dafire.kpf
 
-externals:
-  oUF: git://haste.ixo.no/oUF.git
