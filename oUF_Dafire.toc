@@ -1,9 +1,7 @@
-## Interface: 20400
+## Interface: 30300
 ## Author: dafire
-## Title: oUF dafire
-## OptionalDeps: oUF, tekErr, daFonts, tekticles, oUF_DruidMana, oUF_Fader
+## Title: oUF: dafire
+## OptionalDeps: daFonts, tekticles, oUF_DruidMana
 ## RequiredDeps: oUF
-# ## X-oUF: oUF
-# oUF\oUF.xml
 oUF_Fader\oUF_Fader.lua
 dafire.lua
