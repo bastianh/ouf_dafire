@@ -1,5 +1,9 @@
 local height, width, innerborder = 35, 170, 1
 
+local _, ns = ...
+local oUF = ns.oUF or oUF
+assert(oUF, "<name> was unable to locate oUF install.")
+
 local function Debug(...) ChatFrame1:AddMessage(string.join(" ", "|cFF33FF99oUF_dafire|r:", tostringall(...))) end
 
 local LSM = LibStub and LibStub:GetLibrary("LibSharedMedia-3.0", true)
