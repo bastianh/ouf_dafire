@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Author: dafire
-## Title: oUF: dafire
-## OptionalDeps: oUF, daFonts, tekticles, oUF_DruidMana
+## Title: oUF dafire
+## OptionalDeps: oUF, daFonts, tekticles, oUF_DruidMana, Quartz
 ## X-oUF: oUF_Dafire
 
 oUF\oUF.xml

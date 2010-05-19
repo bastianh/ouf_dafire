@@ -12,6 +12,14 @@ local texture = LSM and LSM:Fetch("statusbar","Smudge",true) or [[Interface\AddO
 
 local playerClass = select(2, UnitClass("player")) -- combopoints for druid/rogue
 
+-- check if quartz is installed... if quartz is installed we don't show castingbars
+local AceAddon = LibStub and LibStub:GetLibrary("AceAddon-3.0", true)
+local DisableCastingbars = AceAddon and AceAddon:GetAddon("Quartz3", true)
+
+Debug("Font", font)
+Debug("texture", texture)
+Debug("CB",DisableCastingbars)
+
 local menu = function(self)
 	local unit = self.unit:sub(1, -2)
 	local cunit = self.unit:gsub("(.)", string.upper, 1)
@@ -431,7 +439,9 @@ local func = function(settings, self, unit)
 
 	if (unit == 'target') or (unit == 'player') then
 		create_threatinfo(self,unit,1)
-		self.Castbar = create_castbar(self,unit,1)	
+		if not DisableCastingbars then
+		   self.Castbar = create_castbar(self,unit,1)	
+		end
 	end
 	
 	local leader = hp:CreateTexture(nil, "OVERLAY")
