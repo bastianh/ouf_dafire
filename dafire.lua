@@ -16,10 +16,6 @@ local playerClass = select(2, UnitClass("player")) -- combopoints for druid/rogu
 local AceAddon = LibStub and LibStub:GetLibrary("AceAddon-3.0", true)
 local DisableCastingbars = AceAddon and AceAddon:GetAddon("Quartz3", true)
 
-Debug("Font", font)
-Debug("texture", texture)
-Debug("CB",DisableCastingbars)
-
 local menu = function(self)
 	local unit = self.unit:sub(1, -2)
 	local cunit = self.unit:gsub("(.)", string.upper, 1)
@@ -412,6 +408,11 @@ local func = function(settings, self, unit)
 		
 	elseif (unit == 'player') then
 		
+		local LFDRole = self:CreateTexture(nil, "OVERLAY")		
+		LFDRole:SetSize(16, 16)
+      LFDRole:SetPoint("BOTTOMLEFT", self)
+      self.LFDRole = LFDRole
+		
 		-- Fader (needs oUF_Fader)
 		self.NormalAlpha = 0
 		self.Fader = {
@@ -464,8 +465,14 @@ local func = function(settings, self, unit)
 	self.RaidIcon = ricon
 
 
-	-- Range fading on party
+	-- Party Stuff
 	if(not unit) then
+
+		local LFDRole = self:CreateTexture(nil, "OVERLAY")		
+		LFDRole:SetSize(16, 16)
+      LFDRole:SetPoint("BOTTOMLEFT", self)
+      self.LFDRole = LFDRole
+      	   
 		create_threatinfo(self,unit,1)
 	--	self.Range = true
 --		self.inRangeAlpha = 1
