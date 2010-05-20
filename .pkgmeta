@@ -1,8 +1,4 @@
 
-ignore:
-  - ouF_Dafire.kpf
-
 externals:
   oUF:
     url: git://github.com/haste/oUF.git
-    tag: 1.3.28
