@@ -94,7 +94,7 @@ local CreatePowerBar = function(self, text)
       pp:SetPoint"RIGHT"
    end
    self.Power = pp
-   
+
    if (text) then
       local ppp = pp:CreateFontString(nil, "OVERLAY")
       ppp:SetAllPoints(pp)
@@ -118,6 +118,26 @@ local CreateLevelDisplay = function(self,position)
    level:SetFont(FONT, 11, "OUTLINE")
    self:Tag(level,"[difficulty][smartlevel][plus][rare]")
 end
+
+local CPointsUpdate = function(self, event, unit)
+	if(unit == 'pet') then return end
+
+	local cp
+	if(UnitExists'vehicle') then
+		cp = GetComboPoints('vehicle', 'target')
+	else
+		cp = GetComboPoints('player', 'target')
+	end
+
+	local cpoints = self.ourCPoints
+   cpoints:SetText(cp)
+   if (cp > 0) then
+      cpoints:Show()
+   else
+      cpoints:Hide()
+   end
+end
+
 
 local UnitSpecific = {
    player = function(self)
@@ -152,55 +172,21 @@ local UnitSpecific = {
       debuffs.showDebuffType = true
       debuffs.num = 40
       self.PostUpdateAura = scaleDebuffs
-      self.Debuffs = debuffs      
+      self.Debuffs = debuffs
+      -- we don't use cpoints from oUF because we want text based cpoints TODO: make a module
+      local cpoints = self:CreateFontString(nil, "OVERLAY")
+      cpoints:SetPoint("CENTER", self, "LEFT", -15, 3)
+      cpoints:SetFont(FONT, 38, "OUTLINE")
+      cpoints:SetTextColor(1,1,1)
+      cpoints:SetJustifyH("RIGHT")
+      cpoints.Update = CPointsUpdate
+      self:RegisterEvent('UNIT_COMBO_POINTS', cpoints.Update)
+		self:RegisterEvent('PLAYER_TARGET_CHANGED', cpoints.Update)
+      self.ourCPoints = cpoints
+
    end,
    party = function(self)
-      -- FIXME: bugt rum CreatePortrait(self, "left")
-      --[[
-evtl weil oUF 1.3.28 ist ?
-1x oUF-1.3.28\elements\portraits.lua:5: Usage: UnitIsUnit("unit", "otherUnit")
-oUF-1.3.28\elements\portraits.lua:5: in function <oUF\elements\portraits.lua:4>
-(tail call): ?:
-
-Locals:
-self = oUF_DafirePartyUnitButton4 {
- 0 = <userdata>
- UNIT_PORTRAIT_UPDATE = <function> @ oUF\elements\portraits.lua:4:
- Portrait = <unnamed> {}
- UNIT_MAXFOCUS = <function> @ oUF\elements\power.lua:11:
- __tags = <table> {}
- PLAYER_ENTERING_WORLD = <function> @ oUF\ouf.lua:315:
- id = "4"
- unit = "party4"
- menu = <function> @ oUF_Dafire\dafire.lua:16:
- UNIT_MAXRAGE = <function> @ oUF\elements\power.lua:11:
- UNIT_ENTERED_VEHICLE = <function> @ oUF\elements\vehicle.lua:4:
- UNIT_MAXRUNIC_POWER = <function> @ oUF\elements\power.lua:11:
- UNIT_DISPLAYPOWER = <function> @ oUF\elements\power.lua:11:
- UNIT_MAXHEALTH = <function> @ oUF\elements\health.lua:6:
- __elements = <table> {}
- UNIT_MAXENERGY = <function> @ oUF\elements\power.lua:11:
- PARTY_MEMBER_ENABLE = <function> @ oUF\elements\portraits.lua:4:
- UNIT_RAGE = <function> @ oUF\elements\power.lua:11:
- Power = <unnamed> {}
- UNIT_ENERGY = <function> @ oUF\elements\power.lua:11:
- UNIT_FOCUS = <function> @ oUF\elements\power.lua:11:
- UNIT_FACTION = <table> {}
- UNIT_HAPPINESS = <table> {}
- UNIT_RUNIC_POWER = <function> @ oUF\elements\power.lua:11:
- UNIT_HEALTH = <function> @ oUF\elements\health.lua:6:
- Health = <unnamed> {}
- UNIT_MAXMANA = <function> @ oUF\elements\power.lua:11:
- UNIT_MANA = <function> @ oUF\elements\power.lua:11:
- style = "Dafire"
- UNIT_EXITED_VEHICLE = <function> @ oUF\elements\vehicle.lua:4:
- UNIT_MODEL_CHANGED = <function> @ oUF\elements\portraits.lua:4:
-}
-event = "PARTY_MEMBER_ENABLE"
-unit = nil
-
-  ---
-      ]]
+      CreatePortrait(self, "left")
       CreatePowerBar(self, true)
       CreateLevelDisplay(self,"right")
    end,
@@ -221,19 +207,19 @@ unit = nil
 
 local DafireFrames = function(self, unit)
    self.menu = menu
-   
+
    self:SetScript("OnEnter", UnitFrame_OnEnter)
    self:SetScript("OnLeave", UnitFrame_OnLeave)
-   
+
    self:RegisterForClicks"anyup"
    self:SetAttribute("*type2", "menu")
-   
+
    self:SetBackdrop(backdrop)
    self:SetBackdropColor(0, 0, 0, 1)
 
    self:SetAttribute('initial-height', 35)
    self:SetAttribute('initial-width', 200)
-   
+
    local hp = CreateFrame("StatusBar", nil, self)
    hp:SetStatusBarTexture(TEXTURE)
    hp.frequentUpdates = true
@@ -243,7 +229,7 @@ local DafireFrames = function(self, unit)
    hp.colorReaction = true  -- CHECKME: alt
    hp.colorSmooth = true  -- CHECKME: alt
    self.Health = hp
-   
+
    local hpp = hp:CreateFontString(nil, "OVERLAY")
    hpp:SetAllPoints(hp)
    hpp:SetJustifyH"CENTER"
@@ -251,16 +237,7 @@ local DafireFrames = function(self, unit)
    hpp:SetTextColor(1, 1, 1)
    self:Tag(hpp, '[dead][offline][dafire:health]')
    hp.value = hpp
---[[
-   FIXME: cpoints not working!
-   local cpoints = self:CreateFontString(nil, "OVERLAY")
-   cpoints:SetPoint("CENTER", self, "LEFT", -15, 3)
-   cpoints:SetFont(FONT, 38, "OUTLINE")
-   cpoints:SetTextColor(1,1,1)
-   cpoints:SetJustifyH("RIGHT")
-   self.CPoints = cpoints
-]]   
-   
+
    if(UnitSpecific[unit]) then
       UnitSpecific[unit](self)
    end
@@ -271,14 +248,14 @@ local DafireFrames = function(self, unit)
       name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -5)
    else
       name:SetJustifyH"LEFT"
-      name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -5)	   
+      name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -5)
    end
    name:SetFont(FONT, 12, "OUTLINE")
    name:SetTextColor(1, 1, 1)
    name:SetWidth(self:GetAttribute("initial-width") - 15)
    name:SetHeight(12)
    self:Tag(name,"[name]")
-   
+
    hp:SetPoint"TOP"
    if self.Portrait then
       if self.Portrait.side == 'left' then
@@ -297,7 +274,7 @@ local DafireFrames = function(self, unit)
    else
       hp:SetPoint"BOTTOM"
    end
-   
+
 end
 
 oUF:RegisterStyle("Dafire", DafireFrames)
