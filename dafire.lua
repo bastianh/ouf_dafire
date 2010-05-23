@@ -138,12 +138,48 @@ local CPointsUpdate = function(self, event, unit)
    end
 end
 
+local CreateRuneBar = function(self)
+   -- TODO: FIXME: not working, and I don't have a deathknight char to test more yet
+   if select(2, UnitClass("player")) ~= "DEATHKNIGHT" then return end
+   local runeloadcolors = {
+      [1] = {.69,.31,.31},
+      [2] = {.69,.31,.31},
+      [3] = {.33,.59,.33},
+      [4] = {.33,.59,.33},
+      [5] = {.31,.45,.63},
+      [6] = {.31,.45,.63},
+   }
+
+   local width = self:GetAttribute"initial-width"
+   runes = CreateFrame('Frame', nil, self)
+   runes:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -1)
+   self.Runes = runes
+   self.Runes:SetHeight(12)
+   self.Runes:SetWidth(200)
+   self.Runes:SetBackdrop(backdrop)
+   self.Runes:SetBackdropColor(0, 0, 0)
+   self.Runes.anchor = "TOPLEFT"
+   self.Runes.growth = "RIGHT"
+   self.Runes.height = 7
+   self.Runes.width = 250 / 6 - 0.85
+   self.Runes.spacing = 1
+   self.Runes.runeMap = {[3] = 3}
+
+   for i = 1, 6 do
+      self.Runes[i] = CreateFrame('StatusBar', nil, self.Runes)
+      --self.Runes[i]:SetStatusBarTexture(TEXTURE)
+      --self.Runes[i]:SetStatusBarColor(unpack(runeloadcolors[i]))
+   end
+
+   grunes = self.Runes
+end
 
 local UnitSpecific = {
    player = function(self)
       CreatePortrait(self, "left")
       CreatePowerBar(self, true)
       CreateLevelDisplay(self,"right")
+      CreateRuneBar(self)
    end,
    target = function(self)
       CreatePortrait(self, "right")
@@ -193,13 +229,13 @@ local UnitSpecific = {
    targettarget = function(self)
       local tmpheight, tmpwidth = self:GetAttribute"initial-height", self:GetAttribute"initial-width"
       self:SetAttribute('initial-height', tmpheight-12)
-      self:SetAttribute('initial-width', tmpwidth-70)
+      self:SetAttribute('initial-width', tmpwidth-100)
       CreatePowerBar(self, false)
    end,
    pet = function(self)
       local tmpheight, tmpwidth = self:GetAttribute"initial-height", self:GetAttribute"initial-width"
       self:SetAttribute('initial-height', tmpheight-12)
-      self:SetAttribute('initial-width', tmpwidth-70)
+      self:SetAttribute('initial-width', tmpwidth-100)
       CreatePowerBar(self, false)
       CreateLevelDisplay(self,"right")
    end
