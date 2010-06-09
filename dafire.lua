@@ -120,16 +120,16 @@ local CreateLevelDisplay = function(self,position)
 end
 
 local CPointsUpdate = function(self, event, unit)
-	if(unit == 'pet') then return end
+   if(unit == 'pet') then return end
 
-	local cp
-	if(UnitExists'vehicle') then
-		cp = GetComboPoints('vehicle', 'target')
-	else
-		cp = GetComboPoints('player', 'target')
-	end
+   local cp
+   if(UnitExists'vehicle') then
+      cp = GetComboPoints('vehicle', 'target')
+   else
+      cp = GetComboPoints('player', 'target')
+   end
 
-	local cpoints = self.ourCPoints
+   local cpoints = self.ourCPoints
    cpoints:SetText(cp)
    if (cp > 0) then
       cpoints:Show()
@@ -174,17 +174,48 @@ local CreateRuneBar = function(self)
    grunes = self.Runes
 end
 
+local CreateRaidIcon = function(self)
+   local ricon = self.Health:CreateTexture(nil,"OVERLAY")
+   if self.Protrait then
+      ricon:SetAllPoints(self.Portrait)
+   else
+      ricon:SetHeight(16)
+      ricon:SetWidth(16)
+      ricon:SetPoint"RIGHT"
+   end
+   self.RaidIcon = ricon
+end
+
+local ThreatInfo = function(self, size)
+   local threat = self:CreateTexture(nil,"BACKGROUND")
+   if size == 1 then
+      threat:SetPoint("TOPRIGHT",self,28,28)
+      threat:SetPoint("BOTTOMLEFT",self,-28,-28)
+      threat:SetTexCoord(0, .918, 0, .186)
+   elseif  size == 2 then
+      threat:SetPoint("TOPRIGHT",self,8,8)
+      threat:SetPoint("BOTTOMLEFT",self,-8,-8)
+      threat:SetTexCoord(.078, .547, .214, .297)
+   end
+   threat:SetTexture[[Interface\AddOns\oUF_Dafire\textures\threat]]
+   self.Threat = threat
+end
+
 local UnitSpecific = {
    player = function(self)
       CreatePortrait(self, "left")
+      CreateRaidIcon(self)
       CreatePowerBar(self, true)
       CreateLevelDisplay(self,"right")
       CreateRuneBar(self)
+      ThreatInfo(self,1)
    end,
    target = function(self)
       CreatePortrait(self, "right")
+      CreateRaidIcon(self)
       CreatePowerBar(self, true)
       CreateLevelDisplay(self,"left")
+      ThreatInfo(self,1)
       -- TODO: refactor buffs
       local buffs = CreateFrame("Frame", nil, self)
       buffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0,1)
@@ -209,7 +240,7 @@ local UnitSpecific = {
       debuffs.num = 40
       self.PostUpdateAura = scaleDebuffs
       self.Debuffs = debuffs
-      -- we don't use cpoints from oUF because we want text based cpoints TODO: make a module
+      -- TODO: we don't use cpoints from oUF because we want text based cpoints (todo: make it a module)
       local cpoints = self:CreateFontString(nil, "OVERLAY")
       cpoints:SetPoint("CENTER", self, "LEFT", -15, 3)
       cpoints:SetFont(FONT, 38, "OUTLINE")
@@ -217,20 +248,23 @@ local UnitSpecific = {
       cpoints:SetJustifyH("RIGHT")
       cpoints.Update = CPointsUpdate
       self:RegisterEvent('UNIT_COMBO_POINTS', cpoints.Update)
-		self:RegisterEvent('PLAYER_TARGET_CHANGED', cpoints.Update)
+      self:RegisterEvent('PLAYER_TARGET_CHANGED', cpoints.Update)
       self.ourCPoints = cpoints
 
    end,
    party = function(self)
       CreatePortrait(self, "left")
+      CreateRaidIcon(self)
       CreatePowerBar(self, true)
       CreateLevelDisplay(self,"right")
+      ThreatInfo(self,1)
    end,
    targettarget = function(self)
       local tmpheight, tmpwidth = self:GetAttribute"initial-height", self:GetAttribute"initial-width"
       self:SetAttribute('initial-height', tmpheight-12)
       self:SetAttribute('initial-width', tmpwidth-100)
       CreatePowerBar(self, false)
+      ThreatInfo(self,2)
    end,
    pet = function(self)
       local tmpheight, tmpwidth = self:GetAttribute"initial-height", self:GetAttribute"initial-width"
@@ -238,6 +272,7 @@ local UnitSpecific = {
       self:SetAttribute('initial-width', tmpwidth-100)
       CreatePowerBar(self, false)
       CreateLevelDisplay(self,"right")
+      ThreatInfo(self,2)
    end
 }
 
@@ -328,7 +363,7 @@ oUF:Factory(function(self)
    self:Spawn("pet"):SetPoint("TOPLEFT", player, "BOTTOMLEFT", 0, -8)
 
    -- oUF:SpawnHeader(overrideName, overrideTemplate, visibility, attributes ...)
-   local party = self:SpawnHeader(nil, nil, 'raid,party,solo',
+   local party = self:SpawnHeader(nil, nil, 'party,solo',
       -- http://wowprogramming.com/docs/secure_template/Group_Headers
       -- Set header attributes
       "showParty", true,

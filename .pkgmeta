@@ -1,4 +1,4 @@
 
 externals:
   oUF:
-    url: git://github.com/dafire/oUF.git
+    url: git://github.com/haste/oUF.git
