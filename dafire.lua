@@ -176,7 +176,7 @@ end
 
 local CreateRaidIcon = function(self)
    local ricon = self.Health:CreateTexture(nil,"OVERLAY")
-   if self.Protrait then
+   if self.Portrait then
       ricon:SetAllPoints(self.Portrait)
    else
       ricon:SetHeight(16)
