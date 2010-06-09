@@ -2,3 +2,6 @@
 externals:
   oUF:
     url: git://github.com/haste/oUF.git
+
+ignore:
+  - src
