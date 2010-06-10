@@ -119,25 +119,6 @@ local CreateLevelDisplay = function(self,position)
    self:Tag(level,"[difficulty][smartlevel][plus][rare]")
 end
 
-local CPointsUpdate = function(self, event, unit)
-   if(unit == 'pet') then return end
-
-   local cp
-   if(UnitExists'vehicle') then
-      cp = GetComboPoints('vehicle', 'target')
-   else
-      cp = GetComboPoints('player', 'target')
-   end
-
-   local cpoints = self.ourCPoints
-   cpoints:SetText(cp)
-   if (cp > 0) then
-      cpoints:Show()
-   else
-      cpoints:Hide()
-   end
-end
-
 local CreateRuneBar = function(self)
    -- TODO: FIXME: not working, and I don't have a deathknight char to test more yet
    if select(2, UnitClass("player")) ~= "DEATHKNIGHT" then return end
@@ -240,15 +221,13 @@ local UnitSpecific = {
       debuffs.num = 40
       self.PostUpdateAura = scaleDebuffs
       self.Debuffs = debuffs
-      -- TODO: we don't use cpoints from oUF because we want text based cpoints (todo: make it a module)
+
       local cpoints = self:CreateFontString(nil, "OVERLAY")
       cpoints:SetPoint("CENTER", self, "LEFT", -15, 3)
       cpoints:SetFont(FONT, 38, "OUTLINE")
       cpoints:SetTextColor(1,1,1)
-      cpoints:SetJustifyH("RIGHT")
-      cpoints.Update = CPointsUpdate
-      self:RegisterEvent('UNIT_COMBO_POINTS', cpoints.Update)
-      self:RegisterEvent('PLAYER_TARGET_CHANGED', cpoints.Update)
+      cpoints:SetJustifyH("RIGHT")   
+      self:Tag(cpoints, '[cpoints]')
       self.ourCPoints = cpoints
 
    end,
