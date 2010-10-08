@@ -56,7 +56,7 @@ oUF.TagEvents['dafire:power'] = oUF.TagEvents.missingpp
 
 local CreatePortrait = function(self, side)
    local portrait = CreateFrame("PlayerModel", nil, self)
-   portrait:SetScript("OnShow", function() this:SetCamera(0) end)
+   -- portrait:SetScript("OnShow", function() this:SetCamera(0) end)
    portrait:SetHeight(self:GetAttribute"initial-height")
    portrait:SetWidth(self:GetAttribute"initial-height")
    portrait.type = "3D"
