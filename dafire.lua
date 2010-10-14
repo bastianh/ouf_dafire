@@ -57,8 +57,8 @@ oUF.TagEvents['dafire:power'] = oUF.TagEvents.missingpp
 local CreatePortrait = function(self, side)
    local portrait = CreateFrame("PlayerModel", nil, self)
    portrait:SetScript("OnShow", function(self) self:SetCamera(0) end)
-   portrait:SetHeight(self:GetAttribute"initial-height")
-   portrait:SetWidth(self:GetAttribute"initial-height")
+   portrait:SetHeight(self:GetHeight())
+   portrait:SetWidth(self:GetHeight())
    portrait.type = "3D"
    portrait:SetPoint"TOP"
    portrait:SetPoint"BOTTOM"
@@ -182,165 +182,198 @@ local ThreatInfo = function(self, size)
    self.Threat = threat
 end
 
+local SharedFirst = function(self,unit,isSingle)
+    self.menu = menu
+
+    self:SetScript("OnEnter", UnitFrame_OnEnter)
+    self:SetScript("OnLeave", UnitFrame_OnLeave)
+
+    self:RegisterForClicks"AnyDown"
+
+    self:SetBackdrop(backdrop)
+    self:SetBackdropColor(0, 0, 0, 1)
+
+    if(isSingle) then
+        self:SetSize(200, 35)
+    end
+
+    local hp = CreateFrame("StatusBar", nil, self)
+    hp:SetStatusBarTexture(TEXTURE)
+    hp.frequentUpdates = true
+    hp.colorTapping = true  -- CHECKME: alt
+    hp.colorClass = true  -- CHECKME: alt
+    hp.colorHappiness = true  -- CHECKME: alt
+    hp.colorReaction = true  -- CHECKME: alt
+    hp.colorSmooth = true  -- CHECKME: alt
+    self.Health = hp
+
+    local hpp = hp:CreateFontString(nil, "OVERLAY")
+    hpp:SetAllPoints(hp)
+    hpp:SetJustifyH"CENTER"
+    hpp:SetFont(FONT, 12)
+    hpp:SetTextColor(1, 1, 1)
+    self:Tag(hpp, '[dead][offline][dafire:health]')
+    hp.value = hpp
+
+end
+
+local SharedSecond = function(self,unit,isSingle)
+    local hp = self.Health
+    local name = hp:CreateFontString(nil, "OVERLAY")
+    if unit == "target" or unit == "targettarget" then
+       name:SetJustifyH"RIGHT"
+       name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -5)
+    else
+       name:SetJustifyH"LEFT"
+       name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -5)
+    end
+    name:SetFont(FONT, 12, "OUTLINE")
+    name:SetTextColor(1, 1, 1)
+    name:SetWidth(self:GetWidth() - 15)
+    name:SetHeight(12)
+    self:Tag(name,"[name]")
+
+    hp:SetPoint"TOP"
+    if self.Portrait then
+       if self.Portrait.side == 'left' then
+          hp:SetPoint("LEFT", self.Portrait, "RIGHT", 1, 0)
+          hp:SetPoint"RIGHT"
+       else
+          hp:SetPoint("RIGHT", self.Portrait, "LEFT", -1, 0)
+          hp:SetPoint"LEFT"
+       end
+    else
+       hp:SetPoint"RIGHT"
+       hp:SetPoint"LEFT"
+    end
+    if self.Power then
+       hp:SetPoint("BOTTOM", self.Power, "TOP", 0, 1)
+    else
+       hp:SetPoint"BOTTOM"
+    end
+
+end
+
 local UnitSpecific = {
-   player = function(self)
-      CreatePortrait(self, "left")
-      CreateRaidIcon(self)
-      CreatePowerBar(self, true)
-      CreateLevelDisplay(self,"right")
-      CreateRuneBar(self)
-      ThreatInfo(self,1)
-   end,
-   target = function(self)
-      CreatePortrait(self, "right")
-      CreateRaidIcon(self)
-      CreatePowerBar(self, true)
-      CreateLevelDisplay(self,"left")
-      ThreatInfo(self,1)
-      -- TODO: refactor buffs
-      local buffs = CreateFrame("Frame", nil, self)
-      buffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0,1)
-      buffs:SetHeight(18*3)
-      buffs:SetWidth(18*8)
-      buffs:SetFrameStrata("LOW")
-      buffs.size = 18
-      buffs.num = 8*3
-      buffs.initialAnchor = "BOTTOMLEFT"
-      buffs['growth-x'] = "RIGHT"
-      buffs['growth-y'] = "UP"
-      self.Buffs = buffs
-      -- TODO: refactor Debuffs
-      local debuffs = CreateFrame("Frame", nil, self)
-      debuffs:SetPoint("TOPLEFT", self, "TOPRIGHT")
-      debuffs:SetHeight(18*4)
-      debuffs:SetWidth(18*10)
-      debuffs['growth-y'] = "DOWN"
-      debuffs.initialAnchor = "TOPLEFT"
-      debuffs.size = 18
-      debuffs.showDebuffType = true
-      debuffs.num = 40
-      self.PostUpdateAura = scaleDebuffs
-      self.Debuffs = debuffs
+    player = function(self,...)
+        SharedFirst(self,...)
+        CreatePortrait(self, "left")
+        CreateRaidIcon(self)
+        CreatePowerBar(self, true)
+        CreateLevelDisplay(self,"right")
+        CreateRuneBar(self)
+        ThreatInfo(self,1)
+        SharedSecond(self,...)
+    end,
+    target = function(self,...)
+        SharedFirst(self,...)
+        CreatePortrait(self, "right")
+        CreateRaidIcon(self)
+        CreatePowerBar(self, true)
+        CreateLevelDisplay(self,"left")
+        ThreatInfo(self,1)
+        -- TODO: refactor buffs
+        local buffs = CreateFrame("Frame", nil, self)
+        buffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0,1)
+        buffs:SetHeight(18*3)
+        buffs:SetWidth(18*8)
+        buffs:SetFrameStrata("LOW")
+        buffs.size = 18
+        buffs.num = 8*3
+        buffs.initialAnchor = "BOTTOMLEFT"
+        buffs['growth-x'] = "RIGHT"
+        buffs['growth-y'] = "UP"
+        self.Buffs = buffs
+        -- TODO: refactor Debuffs
+        local debuffs = CreateFrame("Frame", nil, self)
+        debuffs:SetPoint("TOPLEFT", self, "TOPRIGHT")
+        debuffs:SetHeight(18*4)
+        debuffs:SetWidth(18*10)
+        debuffs['growth-y'] = "DOWN"
+        debuffs.initialAnchor = "TOPLEFT"
+        debuffs.size = 18
+        debuffs.showDebuffType = true
+        debuffs.num = 40
+        self.PostUpdateAura = scaleDebuffs
+        self.Debuffs = debuffs
 
-      local cpoints = self:CreateFontString(nil, "OVERLAY")
-      cpoints:SetPoint("CENTER", self, "LEFT", -15, 3)
-      cpoints:SetFont(FONT, 38, "OUTLINE")
-      cpoints:SetTextColor(1,1,1)
-      cpoints:SetJustifyH("RIGHT")   
-      self:Tag(cpoints, '[cpoints]')
-      self.ourCPoints = cpoints
-
-   end,
-   party = function(self)
-      CreatePortrait(self, "left")
-      CreateRaidIcon(self)
-      CreatePowerBar(self, true)
-      CreateLevelDisplay(self,"right")
-      ThreatInfo(self,1)
-   end,
-   targettarget = function(self)
-      local tmpheight, tmpwidth = self:GetAttribute"initial-height", self:GetAttribute"initial-width"
-      self:SetAttribute('initial-height', tmpheight-12)
-      self:SetAttribute('initial-width', tmpwidth-100)
-      CreatePowerBar(self, false)
-      ThreatInfo(self,2)
-   end,
-   pet = function(self)
-      local tmpheight, tmpwidth = self:GetAttribute"initial-height", self:GetAttribute"initial-width"
-      self:SetAttribute('initial-height', tmpheight-12)
-      self:SetAttribute('initial-width', tmpwidth-100)
-      CreatePowerBar(self, false)
-      CreateLevelDisplay(self,"right")
-      ThreatInfo(self,2)
+        local cpoints = self:CreateFontString(nil, "OVERLAY")
+        cpoints:SetPoint("CENTER", self, "LEFT", -15, 3)
+        cpoints:SetFont(FONT, 38, "OUTLINE")
+        cpoints:SetTextColor(1,1,1)
+        cpoints:SetJustifyH("RIGHT")   
+        self:Tag(cpoints, '[cpoints]')
+        self.ourCPoints = cpoints
+        SharedSecond(self,...)
+    end,
+    pet = function(self,...)
+        SharedFirst(self,...)
+        local tmpheight, tmpwidth = self:GetHeight(), self:GetWidth()
+        self:SetSize(tmpwidth-100,tmpheight-12)
+        CreatePowerBar(self, false)
+        CreateLevelDisplay(self,"right")
+        ThreatInfo(self,2)
+        SharedSecond(self,...)
+    end,
+    targettarget = function(self,...)
+        SharedFirst(self,...)
+        local tmpheight, tmpwidth = self:GetHeight(), self:GetWidth()
+        self:SetSize(tmpwidth-100,tmpheight-12)
+        CreatePowerBar(self, false)
+        ThreatInfo(self,2)
+        SharedSecond(self,...)
+    end,
+    party = function(self,...)SharedFirst(self,...)
+        SharedFirst(self,...)
+        CreatePortrait(self, "left")
+        CreateRaidIcon(self)
+        CreatePowerBar(self, true)
+        CreateLevelDisplay(self,"right")
+        ThreatInfo(self,1)
+        SharedSecond(self,...)
    end
 }
 
-local DafireFrames = function(self, unit)
-   self.menu = menu
-
-   self:SetScript("OnEnter", UnitFrame_OnEnter)
-   self:SetScript("OnLeave", UnitFrame_OnLeave)
-
-   self:RegisterForClicks"anyup"
-   self:SetAttribute("*type2", "menu")
-
-   self:SetBackdrop(backdrop)
-   self:SetBackdropColor(0, 0, 0, 1)
-
-   self:SetAttribute('initial-height', 35)
-   self:SetAttribute('initial-width', 200)
-
-   local hp = CreateFrame("StatusBar", nil, self)
-   hp:SetStatusBarTexture(TEXTURE)
-   hp.frequentUpdates = true
-   hp.colorTapping = true  -- CHECKME: alt
-   hp.colorClass = true  -- CHECKME: alt
-   hp.colorHappiness = true  -- CHECKME: alt
-   hp.colorReaction = true  -- CHECKME: alt
-   hp.colorSmooth = true  -- CHECKME: alt
-   self.Health = hp
-
-   local hpp = hp:CreateFontString(nil, "OVERLAY")
-   hpp:SetAllPoints(hp)
-   hpp:SetJustifyH"CENTER"
-   hpp:SetFont(FONT, 12)
-   hpp:SetTextColor(1, 1, 1)
-   self:Tag(hpp, '[dead][offline][dafire:health]')
-   hp.value = hpp
-
-   if(UnitSpecific[unit]) then
-      UnitSpecific[unit](self)
-   end
-
-   local name = hp:CreateFontString(nil, "OVERLAY")
-   if unit == "target" or unit == "targettarget" then
-      name:SetJustifyH"RIGHT"
-      name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT",0, -5)
-   else
-      name:SetJustifyH"LEFT"
-      name:SetPoint("BOTTOMLEFT", self, "TOPLEFT",0, -5)
-   end
-   name:SetFont(FONT, 12, "OUTLINE")
-   name:SetTextColor(1, 1, 1)
-   name:SetWidth(self:GetAttribute("initial-width") - 15)
-   name:SetHeight(12)
-   self:Tag(name,"[name]")
-
-   hp:SetPoint"TOP"
-   if self.Portrait then
-      if self.Portrait.side == 'left' then
-         hp:SetPoint("LEFT", self.Portrait, "RIGHT", 1, 0)
-         hp:SetPoint"RIGHT"
-      else
-         hp:SetPoint("RIGHT", self.Portrait, "LEFT", -1, 0)
-         hp:SetPoint"LEFT"
-      end
-   else
-      hp:SetPoint"RIGHT"
-      hp:SetPoint"LEFT"
-   end
-   if self.Power then
-      hp:SetPoint("BOTTOM", self.Power, "TOP", 0, 1)
-   else
-      hp:SetPoint"BOTTOM"
-   end
-
+local DafireFrames = function(self, unit, isSingle)
+    SharedFirst(self,unit,isSingle)
+    SharedSecond(self,unit,isSingle);
 end
 
 oUF:RegisterStyle("Dafire", DafireFrames)
 
+for unit,layout in next, UnitSpecific do
+	-- Capitalize the unit name, so it looks better.
+	oUF:RegisterStyle('Dafire - ' .. unit:gsub("^%l", string.upper), layout)
+end
+
+local spawnHelper = function(self, unit, ...)
+	if(UnitSpecific[unit]) then
+		self:SetActiveStyle('Dafire - ' .. unit:gsub("^%l", string.upper))
+		local object = self:Spawn(unit)
+		object:SetPoint(...)
+		return object
+	else
+		self:SetActiveStyle'Dafire'
+		local object = self:Spawn(unit)
+		object:SetPoint(...)
+		return object
+	end
+end
+
 oUF:Factory(function(self)
-   self:SetActiveStyle("Dafire")
+    self:SetActiveStyle("Dafire")
+    
+    local player = spawnHelper(self, 'player', 'RIGHT', UIParent, "BOTTOM", -15, 170 )
+    local target = spawnHelper(self, 'target', 'LEFT', UIParent, "BOTTOM", 15, 170 )
 
-   local player = self:Spawn("player")
-   player:SetPoint("RIGHT", UIParent, "BOTTOM", -15, 170)
+    spawnHelper(self, 'targettarget', 'TOPRIGHT', target, "BOTTOMRIGHT", 0, -8 )
+    spawnHelper(self, 'pet', 'TOPLEFT', player, "BOTTOMLEFT", 0, -8 )    
+--   local target = self:Spawn("target")
+--   target:SetPoint("LEFT", UIParent, "BOTTOM", 15, 170)
 
-   local target = self:Spawn("target")
-   target:SetPoint("LEFT", UIParent, "BOTTOM", 15, 170)
-
-   self:Spawn("targettarget"):SetPoint("TOPRIGHT", target, "BOTTOMRIGHT", 0, -8)
-   self:Spawn("pet"):SetPoint("TOPLEFT", player, "BOTTOMLEFT", 0, -8)
-
+--   self:Spawn("targettarget"):SetPoint("TOPRIGHT", target, "BOTTOMRIGHT", 0, -8)
+--   self:Spawn("pet"):SetPoint("TOPLEFT", player, "BOTTOMLEFT", 0, -8)
+--[[
    -- oUF:SpawnHeader(overrideName, overrideTemplate, visibility, attributes ...)
    local party = self:SpawnHeader(nil, nil, 'party,solo',
       -- http://wowprogramming.com/docs/secure_template/Group_Headers
@@ -354,4 +387,5 @@ oUF:Factory(function(self)
       'columnSpacing', 15
    )
    party:SetPoint("TOPLEFT", 30, -30)
+   ]]
 end)
