@@ -155,6 +155,41 @@ local CreateRuneBar = function(self)
    grunes = self.Runes
 end
 
+-- Eclipse Bar function
+local function CreateEclipseBar(self)
+    local _, class = UnitClass('player')
+
+    if class ~= 'DRUID' then return end
+
+    local eclipseBar = CreateFrame('Frame', nil, self)
+    eclipseBar:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -1)
+    --eclipseBar:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', 0, -1)
+    eclipseBar:SetSize(200, 10)
+    eclipseBar:SetBackdrop(backdrop)
+    eclipseBar:SetBackdropColor(0, 0, 0)
+    
+    local lunarBar = CreateFrame('StatusBar', nil, eclipseBar)
+    lunarBar:SetPoint('LEFT', eclipseBar, 'LEFT', 0, 0)
+    lunarBar:SetSize(200, 10)
+    lunarBar:SetStatusBarTexture(TEXTURE)
+    lunarBar:SetStatusBarColor(0, 0, 1)
+    eclipseBar.LunarBar = lunarBar
+    
+    local solarBar = CreateFrame('StatusBar', nil, eclipseBar)
+    solarBar:SetPoint('LEFT', lunarBar:GetStatusBarTexture(), 'RIGHT', 0, 0)
+    solarBar:SetSize(200, 10)
+    solarBar:SetStatusBarTexture(TEXTURE)
+    solarBar:SetStatusBarColor(1, 3/5, 0)
+    eclipseBar.SolarBar = solarBar
+    
+    local eclipseBarText = solarBar:CreateFontString(nil, 'OVERLAY')
+    eclipseBarText:SetPoint('CENTER', eclipseBar, 'CENTER', 0, 0)
+    eclipseBarText:SetFont(FONT, 10)
+    eclipseBar.Text = eclipseBarText
+    
+    self.EclipseBar = eclipseBar
+end
+
 local CreateRaidIcon = function(self)
    local ricon = self.Health:CreateTexture(nil,"OVERLAY")
    if self.Portrait then
@@ -263,6 +298,7 @@ local UnitSpecific = {
         CreateLevelDisplay(self,"right")
         CreateRuneBar(self)
         ThreatInfo(self,1)
+        CreateEclipseBar(self)
         SharedSecond(self,...)
     end,
     target = function(self,...)
@@ -342,22 +378,22 @@ end
 oUF:RegisterStyle("Dafire", DafireFrames)
 
 for unit,layout in next, UnitSpecific do
-	-- Capitalize the unit name, so it looks better.
-	oUF:RegisterStyle('Dafire - ' .. unit:gsub("^%l", string.upper), layout)
+    -- Capitalize the unit name, so it looks better.
+    oUF:RegisterStyle('Dafire - ' .. unit:gsub("^%l", string.upper), layout)
 end
 
 local spawnHelper = function(self, unit, ...)
-	if(UnitSpecific[unit]) then
-		self:SetActiveStyle('Dafire - ' .. unit:gsub("^%l", string.upper))
-		local object = self:Spawn(unit)
-		object:SetPoint(...)
-		return object
-	else
-		self:SetActiveStyle'Dafire'
-		local object = self:Spawn(unit)
-		object:SetPoint(...)
-		return object
-	end
+    if(UnitSpecific[unit]) then
+        self:SetActiveStyle('Dafire - ' .. unit:gsub("^%l", string.upper))
+        local object = self:Spawn(unit)
+        object:SetPoint(...)
+        return object
+    else
+        self:SetActiveStyle'Dafire'
+        local object = self:Spawn(unit)
+        object:SetPoint(...)
+        return object
+    end
 end
 
 oUF:Factory(function(self)
