@@ -404,11 +404,7 @@ oUF:Factory(function(self)
 
     spawnHelper(self, 'targettarget', 'TOPRIGHT', target, "BOTTOMRIGHT", 0, -8 )
     spawnHelper(self, 'pet', 'TOPLEFT', player, "BOTTOMLEFT", 0, -8 )    
---   local target = self:Spawn("target")
---   target:SetPoint("LEFT", UIParent, "BOTTOM", 15, 170)
 
---   self:Spawn("targettarget"):SetPoint("TOPRIGHT", target, "BOTTOMRIGHT", 0, -8)
---   self:Spawn("pet"):SetPoint("TOPLEFT", player, "BOTTOMLEFT", 0, -8)
 --[[
    -- oUF:SpawnHeader(overrideName, overrideTemplate, visibility, attributes ...)
    local party = self:SpawnHeader(nil, nil, 'party,solo',
