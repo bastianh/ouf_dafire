@@ -155,6 +155,41 @@ local CreateRuneBar = function(self)
    grunes = self.Runes
 end
 
+-- Holy Bar Paladin
+local function CreateHolyPower(self)
+    if(select(2, UnitClass('player')) ~= 'PALADIN') then return end
+
+    local holypower = CreateFrame('Frame', nil, self)
+    holypower:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', 0, -1)
+    holypower:SetSize(160, 10)
+    holypower:SetBackdrop(backdrop)
+    holypower:SetBackdropColor(0.2, 0.2, 0.2)   
+
+    local holypower1 = CreateFrame('Frame', nil, holypower)
+    holypower1:SetPoint('TOPLEFT', holypower, 'TOPLEFT', 2, -1)
+    holypower1:SetSize(52, 8)
+    holypower1:SetBackdrop(backdrop)
+    holypower1:SetBackdropColor(1, 1, 0)   
+
+    local holypower2 = CreateFrame('Frame', nil, holypower)
+    holypower2:SetPoint('TOPLEFT', holypower1, 'TOPRIGHT', 2, 0)
+    holypower2:SetSize(52, 8)
+    holypower2:SetBackdrop(backdrop)
+    holypower2:SetBackdropColor(1, 1, 0)
+
+    local holypower3 = CreateFrame('Frame', nil, holypower)
+    holypower3:SetPoint('TOPLEFT', holypower2, 'TOPRIGHT', 2, 0)
+    holypower3:SetSize(52, 8)
+    holypower3:SetBackdrop(backdrop)
+    holypower3:SetBackdropColor(1, 1, 0)
+    
+    self.HolyPower = holypower
+    self.HolyPower[1] = holypower1
+    self.HolyPower[2] = holypower2
+    self.HolyPower[3] = holypower3
+    
+end
+
 -- Eclipse Bar function
 local function CreateEclipseBar(self)
     local _, class = UnitClass('player')
@@ -299,6 +334,7 @@ local UnitSpecific = {
         CreateRuneBar(self)
         ThreatInfo(self,1)
         CreateEclipseBar(self)
+        CreateHolyPower(self)
         SharedSecond(self,...)
     end,
     target = function(self,...)
