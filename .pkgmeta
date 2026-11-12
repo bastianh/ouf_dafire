@@ -1,7 +1,5 @@
-
-externals:
-  oUF:
-    url: git://github.com/haste/oUF.git
+package-as: oUF_Dafire
 
 ignore:
   - src
+  - textures/test.tga

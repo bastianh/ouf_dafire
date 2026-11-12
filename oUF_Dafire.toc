@@ -1,9 +1,15 @@
-## Interface: 40000
+## Interface: 16001
 ## Author: dafire
-## Title: oUF dafire (v2)
-## OptionalDeps: oUF, daFonts, tekticles, oUF_DruidMana, Quartz
-## X-oUF: oUF_Dafire
+## Title: oUF dafire
+## Notes: dafire's unit frame layout for oUF (WoW Forever).
+## Version: 3.0.0-dev
+## Dependencies: oUF
+## OptionalDeps: LibSharedMedia-3.0, Quartz, Dominos_Cast
 
-oUF\oUF.xml
-#oUF_Fader\oUF_Fader.lua
-dafire.lua
+Init.lua
+Config.lua
+Util.lua
+Tags.lua
+Elements.lua
+Layout.lua
+Spawn.lua
