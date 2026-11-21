@@ -67,6 +67,7 @@ local styles = {
       Begin(self, isSingle, C.SMALL_W, C.SMALL_H)
       E.Power(self, false)
       E.Level(self, "right")
+      E.Happiness(self)
       E.Threat(self, 2)
       Finish(self)
    end,

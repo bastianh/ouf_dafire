@@ -127,6 +127,14 @@ function E.Level(self, side)
    self:Tag(level, "[difficulty][smartlevel][ $>rare]")
 end
 
+-- Hunter pet happiness face (oUF Happiness element, Forever only). Right next to the frame, at its top edge.
+function E.Happiness(self)
+   local icon = self.Overlay:CreateTexture(nil, "OVERLAY")
+   icon:SetSize(20, 20)
+   icon:SetPoint("TOPLEFT", self, "TOPRIGHT", 3, 0)
+   self.Happiness = icon
+end
+
 -- Covers the portrait if there is one, otherwise a small icon on the right.
 function E.RaidIcon(self)
    local icon = self.Overlay:CreateTexture(nil, "OVERLAY")
