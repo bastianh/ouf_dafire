@@ -128,10 +128,55 @@ function E.Level(self, side)
 end
 
 -- Hunter pet happiness face (oUF Happiness element, Forever only). Right next to the frame, at its top edge.
+local function PetHappiness()
+   if C_PetInfo and C_PetInfo.GetPetHappiness then return C_PetInfo.GetPetHappiness() end
+   if GetPetHappiness then return GetPetHappiness() end
+end
+
+local HAPPINESS_TEXT = { "Unhappy", "Content", "Happy" }
+local HAPPINESS_COLOR = { { 1, .2, .2 }, { 1, .82, 0 }, { .2, 1, .2 } }
+
+local function HappinessTooltip(holder)
+   local happiness, damage, loyalty = PetHappiness()
+   if not happiness then return end
+   GameTooltip:SetOwner(holder, "ANCHOR_RIGHT")
+   local c = HAPPINESS_COLOR[happiness] or { 1, 1, 1 }
+   local text = _G["PET_HAPPINESS" .. happiness] or HAPPINESS_TEXT[happiness] or tostring(happiness)
+   GameTooltip:AddLine(text, c[1], c[2], c[3])
+   if damage then
+      GameTooltip:AddLine(("Damage: %d%%"):format(damage), 1, 1, 1)
+   end
+   if loyalty then
+      if loyalty > 0 then
+         GameTooltip:AddLine("Gaining loyalty", .2, 1, .2)
+      elseif loyalty < 0 then
+         GameTooltip:AddLine("Losing loyalty", 1, .2, .2)
+      end
+   end
+   if GetPetFoodTypes then
+      local foods = { GetPetFoodTypes() }
+      if #foods > 0 then
+         GameTooltip:AddLine(" ")
+         GameTooltip:AddLine("Diet: " .. table.concat(foods, ", "), .8, .8, .8, true)
+      end
+   end
+   GameTooltip:Show()
+end
+
 function E.Happiness(self)
-   local icon = self.Overlay:CreateTexture(nil, "OVERLAY")
-   icon:SetSize(20, 20)
-   icon:SetPoint("TOPLEFT", self, "TOPRIGHT", 3, 0)
+   -- the oUF element needs a Texture; a small frame around it takes the mouse for the tooltip
+   local holder = CreateFrame("Frame", nil, self)
+   holder:SetSize(20, 20)
+   holder:SetPoint("TOPLEFT", self, "TOPRIGHT", 3, 0)
+   holder:EnableMouse(true)
+   holder:SetScript("OnEnter", HappinessTooltip)
+   holder:SetScript("OnLeave", GameTooltip_Hide)
+   holder:Hide()
+
+   local icon = holder:CreateTexture(nil, "OVERLAY")
+   icon:SetAllPoints(holder)
+   -- only catch the mouse while the face is shown
+   icon.PostUpdate = function(_, happiness) holder:SetShown(happiness ~= nil and icon:IsShown()) end
    self.Happiness = icon
 end
 
