@@ -13,7 +13,7 @@ C.SCALE = 1
 C.BIG_W, C.BIG_H = 250, 50     -- player, target, party
 C.SMALL_W, C.SMALL_H = 120, 40 -- pet, targettarget
 C.CASTBAR_H = 14
-C.THREATBAR_H = 5 -- threat bar below the player frame
+C.THREATBAR_H = 10 -- threat bar below the player's power bar (same height as the power bar)
 C.THREATBAR_LOW = CreateColor(.3, .8, .3) -- threat bar colour while below 100%
 C.PVP_SIZE = 22 -- height of the PvP flag icon on the portrait
 

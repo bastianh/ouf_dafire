@@ -33,6 +33,7 @@ local styles = {
       E.RaidIcon(self)
       E.PvP(self, true)
       E.Power(self, true)
+      E.ManaRegenSpark(self)
       E.Level(self, "right")
       E.Threat(self, 1)
       E.ThreatBar(self)

@@ -88,6 +88,86 @@ function E.Power(self, withText)
    end
 end
 
+-- "Five second rule" spark on the player's mana bar: after mana is spent it runs from
+-- left to right in 5 seconds; when it reaches the end, spirit regeneration starts again.
+-- Spending is detected from the mana value going down. When that value is secret,
+-- successful casts of spells with a mana cost are used instead.
+local FSR_DURATION = 5
+local MANA = Enum and Enum.PowerType and Enum.PowerType.Mana or 0
+
+local function SpellCostsMana(spellID)
+   local GetCost = (C_Spell and C_Spell.GetSpellPowerCost) or GetSpellPowerCost
+   local costs = GetCost and spellID and GetCost(spellID)
+   if type(costs) ~= "table" then return false end
+   for _, c in ipairs(costs) do
+      if not U.IsSecret(c.type) and not U.IsSecret(c.cost) and c.type == MANA and c.cost > 0 then
+         return true
+      end
+   end
+   return false
+end
+
+-- Druids in cat/bear form show energy/rage on the bar: hide the spark there.
+local function ManaDisplayed()
+   local pType = UnitPowerType("player")
+   return U.IsSecret(pType) or pType == MANA
+end
+
+-- Needs Power to exist already. Player only.
+function E.ManaRegenSpark(self)
+   local pp = self.Power
+   local spark = pp:CreateTexture(nil, "OVERLAY", nil, 1)
+   spark:SetTexture(C.SPARK_TEXTURE)
+   spark:SetBlendMode("ADD")
+   spark:SetSize(12, pp:GetHeight() * 2)
+   spark:Hide()
+   pp.RegenSpark = spark
+
+   local driver = CreateFrame("Frame", nil, pp)
+   local startTime, lastMana, lastMax
+
+   local function OnUpdate()
+      local progress = (GetTime() - startTime) / FSR_DURATION
+      if progress >= 1 then
+         driver:SetScript("OnUpdate", nil)
+         return spark:Hide()
+      end
+      spark:SetPoint("CENTER", pp, "LEFT", pp:GetWidth() * progress, 0)
+      spark:SetShown(ManaDisplayed())
+   end
+
+   local function Start()
+      startTime = GetTime()
+      driver:SetScript("OnUpdate", OnUpdate)
+      OnUpdate()
+   end
+
+   local function ReadMana()
+      local mana, max = UnitPower("player", MANA), UnitPowerMax("player", MANA)
+      if U.IsSecret(mana) or U.IsSecret(max) then return nil end
+      return mana, max
+   end
+
+   driver:SetScript("OnEvent", function(_, event, _, arg2, arg3)
+      if event == "UNIT_POWER_FREQUENT" then
+         if arg2 ~= "MANA" then return end
+         local mana, max = ReadMana()
+         -- a lower maximum (lost buff) also lowers mana, but nothing was spent
+         if mana and lastMana and mana < lastMana and not (lastMax and max < lastMax) then
+            Start()
+         end
+         lastMana, lastMax = mana, max
+      elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+         if not ReadMana() and SpellCostsMana(arg3) then Start() end
+      else -- PLAYER_ENTERING_WORLD
+         lastMana, lastMax = ReadMana()
+      end
+   end)
+   driver:RegisterUnitEvent("UNIT_POWER_FREQUENT", "player")
+   driver:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+   driver:RegisterEvent("PLAYER_ENTERING_WORLD")
+end
+
 -- 3D model on the given side ("left" or "right"), square with the frame height.
 function E.Portrait(self, side)
    local portrait = CreateFrame("PlayerModel", nil, self)
@@ -343,38 +423,120 @@ function E.ThreatValue(self)
    self:Tag(text, "[dafire:threat]")
 end
 
--- Thin bar below the frame showing the player's threat (0-100%) on the current target.
+-- Threat values from UnitDetailedThreatSituation are 100x the threat points addons show.
+local THREAT_VALUE_SCALE = 100
+
+-- Threat a unit can still build on the mob before it pulls aggro (110% melee / 130%
+-- ranged of the tank, which the scaled percentage already includes). nil when unknown
+-- or secret. Second return: the unit's scaled percentage (how close it is to pulling).
+local function Headroom(unit, mob)
+   local _, _, scaled, _, value = UnitDetailedThreatSituation(unit, mob)
+   if U.IsSecret(scaled) or U.IsSecret(value) then return end
+   if not scaled or not value or scaled <= 0 then return end
+   return value * (100 / scaled - 1), scaled
+end
+
+-- The other group member or pet closest to pulling aggro: its headroom, unit and scaled
+-- percentage. nil when nobody else is on the threat table.
+local function ClosestToPull(mob)
+   local best, bestUnit, bestScaled
+   local function Check(unit)
+      if not U.Exists(unit) then return end
+      local isMe = UnitIsUnit(unit, "player")
+      if U.IsSecret(isMe) or isMe then return end
+      local h, scaled = Headroom(unit, mob)
+      if h and (not best or h < best) then
+         best, bestUnit, bestScaled = h, unit, scaled
+      end
+   end
+   Check("pet")
+   if IsInRaid() then
+      for i = 1, 40 do Check("raid" .. i); Check("raidpet" .. i) end
+   else
+      for i = 1, 4 do Check("party" .. i); Check("partypet" .. i) end
+   end
+   return best, bestUnit, bestScaled
+end
+
+-- Tank view colour by how close the next one is to pulling: green, yellow, red.
+local function TankViewColor(self, pct)
+   if pct >= 90 then return self.colors.threat[3] end
+   if pct >= 70 then return self.colors.threat[1] end
+   return C.THREATBAR_LOW
+end
+
+-- 1234 threat points -> "1.2k", with the given sign.
+local function FormatThreat(sign, raw)
+   local v = raw / THREAT_VALUE_SCALE
+   if v >= 1000 then
+      return ("%s%.1fk"):format(sign, v / 1000)
+   end
+   return ("%s%d"):format(sign, math.floor(v + .5))
+end
+
+-- Thin bar right below the power bar with the player's threat on the current target.
+-- Normal view: fill and left text = your threat (0-100%, 100% = you pull), right text =
+-- "-1.2k", the threat you can still build before you pull.
+-- Tank view, automatically while you hold aggro: fill = how close the group member or pet
+-- closest to pulling is (green/yellow/red), left text = their name, right text = "+1.2k",
+-- the threat they still need to pull it off you.
 -- Uses its own event frame: threat events fire for the mob, not for the player unit.
--- Percentages are secret on bosses; SetValue accepts them, only the colour needs a
--- plain status.
+-- Percentages are secret on bosses; SetValue and formatting accept them, so the normal
+-- view still shows the percentage there, colour and threat values need plain numbers.
+-- Needs Power to exist already.
 function E.ThreatBar(self)
    local bar = CreateFrame("StatusBar", nil, self)
    bar:SetStatusBarTexture(C.TEXTURE)
    bar:SetMinMaxValues(0, 100)
    bar:SetHeight(C.THREATBAR_H)
-   bar:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -2)
-   bar:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -2)
+   local anchor = self.Power or self -- same width as the mana bar, not under the portrait
+   bar:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2)
+   bar:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -2)
    U.CreateBackground(bar)
    bar:Hide()
    self.ThreatBar = bar
+
+   local value = CreateText(bar, 10)
+   value:SetPoint("LEFT", 3, 0)
+   value:SetJustifyH("LEFT")
+   bar.value = value
+
+   local delta = CreateText(bar, 10)
+   delta:SetPoint("RIGHT", -3, 0)
+   delta:SetJustifyH("RIGHT")
+   bar.delta = delta
 
    local function Update()
       if not U.Exists("target") or not UnitCanAttack("player", "target") then
          return bar:Hide()
       end
       local isTanking, status, scaled = UnitDetailedThreatSituation("player", "target")
-      if scaled == nil then
+      if not U.IsSecret(scaled) and scaled == nil then -- not on the threat table
          return bar:Hide()
       end
 
-      local color = C.THREATBAR_LOW
-      if U.IsSecret(status) then
-         color = self.colors.threat[2]
-      elseif status and status > 0 then
-         color = self.colors.threat[status]
+      if not U.IsSecret(isTanking) and isTanking then
+         -- tank view
+         local room, unit, pct = ClosestToPull("target")
+         pct = pct or 0
+         bar:SetStatusBarColor(TankViewColor(self, pct):GetRGB())
+         bar:SetValue(pct)
+         value:SetText(unit and UnitName(unit) or "")
+         delta:SetText(room and FormatThreat("+", room) or "")
+      else
+         -- normal view
+         local color = C.THREATBAR_LOW
+         if U.IsSecret(status) then
+            color = self.colors.threat[2]
+         elseif status and status > 0 then
+            color = self.colors.threat[status]
+         end
+         bar:SetStatusBarColor(color:GetRGB())
+         bar:SetValue(scaled)
+         value:SetFormattedText("%d%%", scaled) -- formatting a secret number is allowed
+         local room = Headroom("player", "target")
+         delta:SetText(room and FormatThreat("-", room) or "")
       end
-      bar:SetStatusBarColor(color:GetRGB())
-      bar:SetValue(scaled)
       bar:Show()
    end
 
@@ -434,10 +596,11 @@ function E.Castbar(self, withLatency, yOffset)
    self.Castbar = cb
 end
 
--- Gap to leave below player/target for the small frames. Always reserves castbar room
--- so pet and targettarget line up even when the player's castbar is provided by another addon.
+-- Gap to leave below player/target for the small frames. Always reserves threat bar and
+-- castbar room so pet and targettarget line up even when the player's castbar is provided
+-- by another addon.
 function E.GapBelow()
-   return -(C.CASTBAR_H + 12)
+   return -(C.THREATBAR_H + C.CASTBAR_H + 7)
 end
 
 -- Small fonts for the stack count and the cooldown countdown on the aura icons.
