@@ -200,6 +200,89 @@ function E.Leader(self)
    self.LeaderIndicator = leader
 end
 
+-- The faction icons are not square (Alliance is tall): keep the height, fit the width.
+local function PvPKeepAspect(element)
+   local atlas = element.GetAtlas and element:GetAtlas()
+   if not atlas or U.IsSecret(atlas) then return end
+   local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas)
+   if info and info.height and info.height > 0 then
+      element:SetWidth(element:GetHeight() * info.width / info.height)
+   end
+end
+
+-- Plain true/false for "unit is PvP flagged"; nil when the answer is secret.
+local function PvPFlagged(unit)
+   local ffa, pvp = UnitIsPVPFreeForAll(unit), UnitIsPVP(unit)
+   if U.IsSecret(ffa) or U.IsSecret(pvp) then return nil end
+   return (ffa or pvp) and true or false, ffa
+end
+
+local function PvPTooltipLines(holder)
+   local unit = holder.unit
+   local flagged, ffa = PvPFlagged(unit)
+   if not flagged then return GameTooltip:Hide() end
+   GameTooltip:ClearLines()
+   GameTooltip:AddLine(ffa and "Free-for-all PvP" or "PvP flagged", 1, .82, 0)
+   if IsPVPTimerRunning and IsPVPTimerRunning() then
+      local sec = math.max(0, math.floor((GetPVPTimer() or 0) / 1000))
+      GameTooltip:AddLine(("Flag ends in %d:%02d"):format(math.floor(sec / 60), sec % 60), 1, 1, 1)
+   elseif GetPVPDesired and GetPVPDesired() then
+      GameTooltip:AddLine("Turned on manually (/pvp to turn off)", .8, .8, .8)
+   end
+   GameTooltip:Show()
+end
+
+local function PvPTooltipOnEnter(holder)
+   GameTooltip:SetOwner(holder, "ANCHOR_RIGHT")
+   PvPTooltipLines(holder)
+   holder.elapsed = 0
+   holder:SetScript("OnUpdate", function(h, dt) -- count the timer down while hovered
+      h.elapsed = h.elapsed + dt
+      if h.elapsed < .5 then return end
+      h.elapsed = 0
+      if GameTooltip:IsOwned(h) then PvPTooltipLines(h) end
+   end)
+end
+
+local function PvPTooltipOnLeave(holder)
+   holder:SetScript("OnUpdate", nil)
+   GameTooltip_Hide()
+end
+
+-- PvP flag (faction / FFA icon) at the bottom outer corner of the portrait.
+-- withTimer: hovering the icon shows the remaining flag time (player only, the timer API
+-- only knows the player). Needs Portrait to exist already.
+function E.PvP(self, withTimer)
+   local pvp = self.Overlay:CreateTexture(nil, "OVERLAY", nil, 1)
+   pvp:SetSize(C.PVP_SIZE, C.PVP_SIZE)
+   local anchor = self.Portrait or self
+   if self.Portrait and self.Portrait.side == "right" then
+      pvp:SetPoint("CENTER", anchor, "BOTTOMRIGHT", 0, 2)
+   else
+      pvp:SetPoint("CENTER", anchor, "BOTTOMLEFT", 0, 2)
+   end
+   pvp.PostUpdate = PvPKeepAspect
+   self.PvPIndicator = pvp
+
+   if withTimer then
+      -- hover-only frame over the icon; clicks pass through to the unit frame
+      local holder = CreateFrame("Frame", nil, self.Overlay)
+      holder:SetAllPoints(pvp)
+      holder:SetFrameLevel(self.Overlay:GetFrameLevel() + 1)
+      holder:EnableMouse(true)
+      if holder.SetMouseClickEnabled then holder:SetMouseClickEnabled(false) end
+      holder:SetScript("OnEnter", PvPTooltipOnEnter)
+      holder:SetScript("OnLeave", PvPTooltipOnLeave)
+      holder:Hide()
+      pvp.PostUpdate = function(element, unit)
+         PvPKeepAspect(element)
+         holder.unit = unit
+         -- only take the mouse while flagged, so the unit tooltip works there otherwise
+         holder:SetShown(PvPFlagged(unit) == true)
+      end
+   end
+end
+
 -- Replacement for oUF's threat update: oUF compares the status unguarded, which errors
 -- when the status is secret. A secret status only shows the glow (orange) in combat.
 local function ThreatUpdate(self, _, unit)

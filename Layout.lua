@@ -31,6 +31,7 @@ local styles = {
       Begin(self, isSingle)
       E.Portrait(self, "left")
       E.RaidIcon(self)
+      E.PvP(self, true)
       E.Power(self, true)
       E.Level(self, "right")
       E.Threat(self, 1)
@@ -46,6 +47,7 @@ local styles = {
       Begin(self, isSingle)
       E.Portrait(self, "right")
       E.RaidIcon(self)
+      E.PvP(self)
       E.Power(self, true)
       E.Level(self, "left")
       E.Threat(self, 1, "player") -- the player's threat on this target
@@ -80,6 +82,7 @@ local styles = {
       E.Level(self, "right")
       E.Threat(self, 1)
       E.Leader(self)
+      E.PvP(self)
       E.Range(self)
       Finish(self)
    end,

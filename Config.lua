@@ -15,6 +15,7 @@ C.SMALL_W, C.SMALL_H = 120, 40 -- pet, targettarget
 C.CASTBAR_H = 14
 C.THREATBAR_H = 5 -- threat bar below the player frame
 C.THREATBAR_LOW = CreateColor(.3, .8, .3) -- threat bar colour while below 100%
+C.PVP_SIZE = 22 -- height of the PvP flag icon on the portrait
 
 -- Target auras
 C.AURA_SIZE, C.AURA_SPACING = 18, 1
